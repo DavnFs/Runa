@@ -22,6 +22,26 @@
 ./gradlew connectedDebugAndroidTest
 ```
 
+## Hotfix SQLCipher native loader — physical device acceptance
+
+```bash
+adb uninstall id.rona.app
+adb install app/build/outputs/apk/debug/app-debug.apk
+adb logcat -c
+adb shell monkey -p id.rona.app -c android.intent.category.LAUNCHER 1
+adb logcat -b crash -d -v threadtime
+```
+
+Kriteria lulus (Infinix GT 30 Pro, Android 16, arm64-v8a):
+1. `monkey` membuka aplikasi tanpa crash (`logcat -b crash` kosong).
+2. Tidak ada `StrongBoxUnavailableException`.
+3. Tidak ada `SQLiteConnection.nativeOpen` UnsatisfiedLinkError.
+4. Onboarding/Home tercapai; database terinisialisasi.
+5. Force-stop lalu relaunch — aplikasi tetap jalan.
+6. Backup terenkripsi, PIN/app lock, dan settings tetap berfungsi.
+7. Airplane mode: seluruh alur tetap berfungsi.
+8. Merged manifest debug & release tetap tanpa INTERNET.
+
 ## Hotfix StrongBox — physical device acceptance
 
 ```bash

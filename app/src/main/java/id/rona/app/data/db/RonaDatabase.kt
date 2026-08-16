@@ -62,6 +62,9 @@ abstract class RonaDatabase : RoomDatabase() {
         private val cryptoManager: CryptoManager,
     ) {
         fun create(context: Context): RonaDatabase {
+            // Native core must be loaded before SupportOpenHelperFactory builds
+            // the SQLCipher connection. Idempotent; also called at app startup.
+            id.rona.app.data.crypto.SqlCipherNativeLoader.load()
             val passphrase = cryptoManager.getOrCreateDbPassphrase()
             val factory = SupportOpenHelperFactory(passphrase)
             return Room.databaseBuilder(context, RonaDatabase::class.java, DB_NAME)
