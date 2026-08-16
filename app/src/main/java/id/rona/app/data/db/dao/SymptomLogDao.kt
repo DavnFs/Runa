@@ -12,6 +12,9 @@ interface SymptomLogDao {
     @Query("SELECT * FROM symptom_logs WHERE dailyLogId = :dailyLogId ORDER BY symptomType ASC")
     fun observeForLog(dailyLogId: Long): Flow<List<SymptomLogEntity>>
 
+    @Query("SELECT * FROM symptom_logs")
+    fun observeAll(): Flow<List<SymptomLogEntity>>
+
     @Query("SELECT * FROM symptom_logs WHERE dailyLogId = :dailyLogId")
     suspend fun getForLog(dailyLogId: Long): List<SymptomLogEntity>
 
