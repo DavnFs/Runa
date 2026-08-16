@@ -1,4 +1,4 @@
-package id.rona.app.ui
+package id.rona.app.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,12 +10,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun PlaceholderMainContent(modifier: Modifier = Modifier) {
+fun HomeScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("rona", style = MaterialTheme.typography.headlineLarge)
+        Text("Beranda", style = MaterialTheme.typography.headlineLarge)
     }
 }

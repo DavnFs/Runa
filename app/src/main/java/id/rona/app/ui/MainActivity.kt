@@ -15,8 +15,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import id.rona.app.data.AppLockManager
-import id.rona.app.data.repository.AppLockRepository
 import id.rona.app.ui.lock.LockGateScreen
+import id.rona.app.ui.navigation.RonaNavHost
 import id.rona.app.ui.theme.RonaTheme
 import javax.inject.Inject
 
@@ -47,8 +47,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background,
                 ) {
                     if (isUnlocked) {
-                        // Main app content (onboarding + tabs) arrives in M4/M5.
-                        PlaceholderMainContent()
+                        RonaNavHost()
                     } else {
                         LockGateScreen(onUnlocked = appLockManager::onUnlocked)
                     }
