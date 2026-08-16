@@ -4,8 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import id.rona.app.ui.MainActivity
-import id.rona.app.ui.home.HomeScreen
+import id.rona.app.ui.MainScreen
 import id.rona.app.ui.onboarding.OnboardingScreen
 
 @Composable
@@ -20,7 +19,7 @@ fun RonaNavHost() {
             })
         }
         composable<Main> {
-            HomeScreen()
+            MainScreen(onLogToday = { /* M7: LogEditorSheet */ })
         }
         composable<Settings> { /* M10 */ }
         composable<SecuritySettings> { /* M10 */ }
