@@ -1,6 +1,6 @@
 # RONA — Technical Product Plan
 
-> **Status:** Disetujui — implementasi dimulai. Revisi pengguna: keputusan seksi 16 dikunci.
+> **Status:** Implementasi inti MVP selesai (M0–M12). P1 (NLP rule-based) dan P2 (ONNX) belum dikerjakan.
 > **Aplikasi:** Rona — private-first menstrual cycle tracker, Android-only, offline-only.
 > **Bahasa dokumen:** Indonesia. **Bahasa kode/identifier:** Inggris. **Bahasa UI:** Indonesia (hangat, singkat, non-judgmental).
 > **Keputusan terkunci:** minSdk 26 · FLAG_SECURE default aktif + toggle opt-in · app lock biometrik + PIN aplikasi dengan grace 30 detik.

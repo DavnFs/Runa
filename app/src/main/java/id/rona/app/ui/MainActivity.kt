@@ -5,6 +5,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -17,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import id.rona.app.data.AppLockManager
 import id.rona.app.ui.lock.LockGateScreen
 import id.rona.app.ui.navigation.RonaNavHost
+import id.rona.app.ui.settings.SettingsViewModel
 import id.rona.app.ui.theme.RonaTheme
 import javax.inject.Inject
 
@@ -25,6 +27,8 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var appLockManager: AppLockManager
+
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +44,8 @@ class MainActivity : ComponentActivity() {
         })
 
         setContent {
-            RonaTheme {
+            val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+            RonaTheme(themeMode = settingsState.themeMode) {
                 val isUnlocked by appLockManager.unlocked.collectAsStateWithLifecycle()
                 Surface(
                     modifier = Modifier.fillMaxSize(),
