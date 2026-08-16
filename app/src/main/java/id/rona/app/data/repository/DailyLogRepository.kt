@@ -50,9 +50,25 @@ class DailyLogRepository @Inject constructor(
         symptoms: List<Pair<SymptomType, Severity>>,
         nowMs: Long = System.currentTimeMillis(),
     ) {
+        saveWithId(date, flow, mood, energy, note, symptoms, nowMs)
+    }
+
+    /**
+     * Same as [save], returning the persisted log id (used for NLP audit).
+     */
+    suspend fun saveWithId(
+        date: LocalDate,
+        flow: FlowLevel?,
+        mood: Mood?,
+        energy: Energy?,
+        note: String?,
+        symptoms: List<Pair<SymptomType, Severity>>,
+        nowMs: Long = System.currentTimeMillis(),
+    ): Long {
+        var resultId = 0L
         db.withTransaction {
             val existing = dailyLogDao.getByDate(date.toEpochDay())
-            val logId = dailyLogDao.upsert(
+            resultId = dailyLogDao.upsert(
                 DailyLogEntity(
                     id = existing?.id ?: 0,
                     dateEpochDay = date.toEpochDay(),
@@ -64,17 +80,18 @@ class DailyLogRepository @Inject constructor(
                     updatedAt = nowMs,
                 )
             )
-            symptomLogDao.deleteForLog(logId)
+            symptomLogDao.deleteForLog(resultId)
             symptoms.forEach { (type, severity) ->
                 symptomLogDao.upsert(
                     SymptomLogEntity(
-                        dailyLogId = logId,
+                        dailyLogId = resultId,
                         symptomType = type,
                         severity = severity,
                     )
                 )
             }
         }
+        return resultId
     }
 
     suspend fun delete(date: LocalDate) {

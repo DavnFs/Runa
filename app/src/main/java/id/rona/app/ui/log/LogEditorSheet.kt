@@ -10,16 +10,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,7 +40,9 @@ import id.rona.app.domain.model.FlowLevel
 import id.rona.app.domain.model.Mood
 import id.rona.app.domain.model.Severity
 import id.rona.app.domain.model.SymptomType
+import id.rona.app.ui.nlp.NoteAnalysisResultSheet
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogEditorSheet(
     date: java.time.LocalDate? = null,
@@ -86,6 +95,22 @@ fun LogEditorSheet(
             minLines = 3,
         )
 
+        OutlinedButton(
+            onClick = viewModel::runAnalysis,
+            enabled = uiState.note.isNotBlank() && !uiState.isAnalyzing,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            if (uiState.isAnalyzing) {
+                CircularProgressIndicator(Modifier.height(20.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.height(8.dp))
+                Text("Menganalisis…")
+            } else {
+                Icon(Icons.Rounded.AutoAwesome, contentDescription = null, modifier = Modifier.height(18.dp))
+                Spacer(Modifier.height(8.dp))
+                Text("Analisis catatan")
+            }
+        }
+
         val errorMessage = uiState.error
         if (errorMessage != null) {
             Text(errorMessage, color = MaterialTheme.colorScheme.error)
@@ -105,6 +130,22 @@ fun LogEditorSheet(
             ) {
                 Text(if (uiState.isSaving) "Menyimpan…" else "Simpan")
             }
+        }
+    }
+
+    // ————— Analysis result bottom sheet —————
+    if (uiState.showAnalysisResult && uiState.analysisResult != null) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = viewModel::dismissAnalysisResult,
+            sheetState = sheetState,
+        ) {
+            NoteAnalysisResultSheet(
+                result = uiState.analysisResult!!,
+                onApply = viewModel::applySuggestions,
+                onDismiss = viewModel::dismissAnalysisResult,
+                onAcknowledgeSafety = viewModel::acknowledgeSafetyAlerts,
+            )
         }
     }
 }

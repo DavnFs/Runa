@@ -6,6 +6,8 @@ import id.rona.app.domain.nlp.SafetyTriageEngine
 import id.rona.app.domain.nlp.TriageLevel
 import id.rona.app.domain.nlp.PregnancyContextKind
 import id.rona.app.domain.nlp.P1DischargeDescriptor
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Deterministic safety triage. Evaluated BEFORE any suggestion or knowledge
@@ -15,7 +17,8 @@ import id.rona.app.domain.nlp.P1DischargeDescriptor
  * No emergency phone numbers are hardcoded: locale-specific services are not
  * configured for P1, so wording refers to nearest health facility / trusted person.
  */
-class SafetyTriageEngineImpl : SafetyTriageEngine {
+@Singleton
+class SafetyTriageEngineImpl @Inject constructor() : SafetyTriageEngine {
 
     override fun evaluate(context: SafetyContext): List<SafetyAlert> {
         val alerts = mutableListOf<SafetyAlert>()
