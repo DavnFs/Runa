@@ -17,6 +17,7 @@ import id.rona.app.ui.insights.InsightsScreen
 @Composable
 fun MainScreen(
     onLogToday: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(RonaTab.HOME) }
 
@@ -34,6 +35,7 @@ fun MainScreen(
             RonaTab.HOME -> HomeScreen(
                 onLogToday = onLogToday,
                 onOpenCalendar = { selectedTab = RonaTab.CALENDAR },
+                onOpenSettings = onOpenSettings,
                 modifier = contentModifier,
             )
             RonaTab.CALENDAR -> CalendarScreen(modifier = contentModifier)

@@ -14,6 +14,15 @@ import androidx.navigation.compose.rememberNavController
 import id.rona.app.ui.MainScreen
 import id.rona.app.ui.log.LogEditorSheet
 import id.rona.app.ui.onboarding.OnboardingScreen
+import id.rona.app.ui.settings.AboutScreen
+import id.rona.app.ui.settings.AppearanceSettingsScreen
+import id.rona.app.ui.settings.BackupExportScreen
+import id.rona.app.ui.settings.BackupRestoreScreen
+import id.rona.app.ui.settings.DataDeletionScreen
+import id.rona.app.ui.settings.NotificationSettingsScreen
+import id.rona.app.ui.settings.PrivacyPolicyScreen
+import id.rona.app.ui.settings.SecuritySettingsScreen
+import id.rona.app.ui.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,17 +39,30 @@ fun RonaNavHost() {
             })
         }
         composable<Main> {
-            MainScreen(onLogToday = { showLogSheet = true })
+            MainScreen(
+                onLogToday = { showLogSheet = true },
+                onOpenSettings = { navController.navigate(Settings) },
+            )
         }
-        composable<Settings> { /* M10 */ }
-        composable<SecuritySettings> { /* M10 */ }
-        composable<NotificationSettings> { /* M10 */ }
-        composable<AppearanceSettings> { /* M10 */ }
-        composable<BackupExport> { /* M10 */ }
-        composable<BackupRestore> { /* M10 */ }
-        composable<DataDeletion> { /* M10 */ }
-        composable<PrivacyPolicy> { /* M10 */ }
-        composable<About> { /* M10 */ }
+        composable<Settings> {
+            SettingsScreen(
+                onSecurity = { navController.navigate(SecuritySettings) },
+                onNotifications = { navController.navigate(NotificationSettings) },
+                onAppearance = { navController.navigate(AppearanceSettings) },
+                onBackup = { navController.navigate(BackupExport) },
+                onDelete = { navController.navigate(DataDeletion) },
+                onPrivacyPolicy = { navController.navigate(PrivacyPolicy) },
+                onAbout = { navController.navigate(About) },
+            )
+        }
+        composable<SecuritySettings> { SecuritySettingsScreen(onBack = { navController.popBackStack() }) }
+        composable<NotificationSettings> { NotificationSettingsScreen(onBack = { navController.popBackStack() }) }
+        composable<AppearanceSettings> { AppearanceSettingsScreen(onBack = { navController.popBackStack() }) }
+        composable<BackupExport> { BackupExportScreen(onBack = { navController.popBackStack() }) }
+        composable<BackupRestore> { BackupRestoreScreen(onBack = { navController.popBackStack() }) }
+        composable<DataDeletion> { DataDeletionScreen(onBack = { navController.popBackStack() }) }
+        composable<PrivacyPolicy> { PrivacyPolicyScreen(onBack = { navController.popBackStack() }) }
+        composable<About> { AboutScreen(onBack = { navController.popBackStack() }) }
     }
 
     if (showLogSheet) {
