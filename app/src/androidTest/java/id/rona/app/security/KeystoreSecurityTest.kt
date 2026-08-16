@@ -3,6 +3,7 @@ package id.rona.app.security
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import id.rona.app.data.crypto.AndroidKeystoreKeyFactory
 import id.rona.app.data.crypto.CryptoManager
 import id.rona.app.ui.MainActivity
 import org.junit.Test
@@ -20,7 +21,7 @@ class KeystoreSecurityTest {
                 crypto.getOrCreateDbPassphrase()
 
                 val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-                val entry = keyStore.getEntry("rona_db_key", null)
+                val entry = keyStore.getEntry(AndroidKeystoreKeyFactory.KEY_ALIAS, null)
                 assertThat(entry).isNotNull()
                 assertThat(entry).isInstanceOf(KeyStore.SecretKeyEntry::class.java)
             }

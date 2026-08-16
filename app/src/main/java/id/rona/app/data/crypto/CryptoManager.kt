@@ -2,16 +2,14 @@ package id.rona.app.data.crypto
 
 import android.content.Context
 import android.os.Build
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
+import android.security.keystore.StrongBoxUnavailableException
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import id.rona.app.util.PrivacyLogger
 import java.io.File
 import java.security.KeyStore
 import java.security.SecureRandom
-import java.util.Base64
 import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
@@ -23,6 +21,23 @@ import javax.inject.Singleton
  * The random 32-byte DB passphrase is encrypted with a non-exportable AES-256-GCM key held in
  * the Android Keystore. The ciphertext lives in an app-private file. Nothing sensitive ever
  * touches SharedPreferences or DataStore.
+ *
+ * Key lifecycle:
+ * - On first use, a key is created via [StrongBoxKeyPolicy]: StrongBox is
+ *   PREFERRED (when the platform advertises it) but fully optional; on
+ *   [StrongBoxUnavailableException] the key is generated in the standard
+ *   Android Keystore (TEE/software-backed) instead. Both are non-exportable
+ *   AES-256-GCM keys; the database remains SQLCipher-encrypted either way.
+ * - An existing valid key under the alias is always reused — it is never
+ *   regenerated just because StrongBox is unavailable today. This preserves
+ *   access to existing encrypted databases.
+ * - If the existing key becomes invalid (e.g. Keystore wipe) while
+ *   `db.key.enc` still exists, the wrapped passphrase is unreadable. That
+ *   error propagates (no silent regeneration) — silent regeneration would
+ *   orphan the encrypted database with no way back.
+ * - If the wrapped-passphrase FILE is corrupt/absent while the key is valid,
+ *   only the file is regenerated. The encrypted database itself is never
+ *   deleted automatically.
  */
 @Singleton
 class CryptoManager @Inject constructor(
@@ -31,28 +46,32 @@ class CryptoManager @Inject constructor(
     private val secureRandom = SecureRandom()
     private val keyStore: KeyStore = KeyStore.getInstance(KEYSTORE_PROVIDER).apply { load(null) }
 
+    private val keyPolicy: StrongBoxKeyPolicy = StrongBoxKeyPolicy(
+        capability = PackageManagerStrongBoxCapability(context),
+        keyFactory = AndroidKeystoreKeyFactory(),
+        onFallback = {
+            PrivacyLogger.d(TAG) { "StrongBox unavailable, using Android Keystore fallback" }
+        },
+    )
+
     /**
      * Returns the existing DB passphrase or creates and persists a new one.
+     * Synchronized: DB opening happens once at startup, but this guards
+     * against double-init producing two different passphrases.
      */
+    @Synchronized
     fun getOrCreateDbPassphrase(): ByteArray {
         val file = File(context.filesDir, KEY_FILE_NAME)
         return if (file.exists()) {
-            try {
-                decrypt(getOrCreateKey(), file.readBytes())
-            } catch (e: Exception) {
-                // Key invalidated or file corrupt: the encrypted DB can no longer be opened.
-                // Regenerate cleanly so the app starts fresh instead of crashing forever.
-                PrivacyLogger.e(TAG) { "db.key.enc unreadable; regenerating passphrase" }
-                deletePassphrase()
-                createNewPassphrase(file)
-            }
+            decrypt(getOrCreateKey(), file.readBytes())
         } else {
             createNewPassphrase(file)
         }
     }
 
+    @Synchronized
     fun deletePassphrase() {
-        runCatching { keyStore.deleteEntry(KEY_ALIAS) }
+        keyStore.deleteEntry(AndroidKeystoreKeyFactory.KEY_ALIAS)
         File(context.filesDir, KEY_FILE_NAME).delete()
     }
 
@@ -62,40 +81,15 @@ class CryptoManager @Inject constructor(
         return passphrase
     }
 
+    /**
+     * Reuses the existing key when present; otherwise creates one through
+     * the StrongBox policy (StrongBox preferred, standard Keystore fallback).
+     */
+    @Synchronized
     private fun getOrCreateKey(): SecretKey {
-        val existing = keyStore.getKey(KEY_ALIAS, null) as? SecretKey
+        val existing = keyStore.getKey(AndroidKeystoreKeyFactory.KEY_ALIAS, null) as? SecretKey
         if (existing != null) return existing
-
-        val builder = KeyGenParameterSpec.Builder(
-            KEY_ALIAS,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setKeySize(256)
-            .setRandomizedEncryptionRequired(true)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            builder.setUnlockedDeviceRequired(true)
-        }
-
-        val keyGenerator =
-            KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEYSTORE_PROVIDER)
-
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            try {
-                keyGenerator.init(builder.setIsStrongBoxBacked(true).build())
-                keyGenerator.generateKey()
-            } catch (e: Exception) {
-                // Device without StrongBox: fall back to software/TEE-backed key.
-                PrivacyLogger.d(TAG) { "StrongBox unavailable, using standard key" }
-                keyGenerator.init(builder.build())
-                keyGenerator.generateKey()
-            }
-        } else {
-            keyGenerator.init(builder.build())
-            keyGenerator.generateKey()
-        }
+        return keyPolicy.createKey()
     }
 
     private fun encrypt(key: SecretKey, plaintext: ByteArray): ByteArray {
@@ -115,7 +109,6 @@ class CryptoManager @Inject constructor(
     companion object {
         private const val TAG = "CryptoManager"
         private const val KEYSTORE_PROVIDER = "AndroidKeyStore"
-        private const val KEY_ALIAS = "rona_db_key"
         private const val KEY_FILE_NAME = "db.key.enc"
         private const val TRANSFORMATION = "AES/GCM/NoPadding"
         private const val GCM_IV_BYTES = 12

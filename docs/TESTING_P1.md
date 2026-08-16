@@ -3,11 +3,11 @@
 ## Test commands
 
 ```bash
-# Unit test (semua, termasuk P1)
+# Unit test (semua, termasuk P1 + StrongBox policy)
 ./gradlew testDebugUnitTest
 
-# Hanya NLP
-./gradlew testDebugUnitTest --tests "id.rona.app.domain.nlp.*"
+# Hanya StrongBox hotfix
+./gradlew testDebugUnitTest --tests "id.rona.app.data.crypto.*"
 
 # Build debug
 ./gradlew assembleDebug
@@ -21,6 +21,29 @@
 # Instrumented (butuh device/emulator — tidak bisa dijalankan di CI tanpa KVM)
 ./gradlew connectedDebugAndroidTest
 ```
+
+## Hotfix StrongBox — physical device acceptance
+
+```bash
+adb uninstall id.rona.app
+adb install app/build/outputs/apk/debug/app-debug.apk
+adb shell monkey -p id.rona.app -c android.intent.category.LAUNCHER 1
+adb logcat -b crash -d -v threadtime
+```
+
+Kriteria lulus (device TANPA StrongBox — mis. Infinix GT 30 Pro):
+1. `monkey` membuka aplikasi tanpa crash (logcat -b crash kosong).
+2. Onboarding muncul; database terinisialisasi.
+3. Kill & relaunch — aplikasi tetap jalan (key reuse, bukan regenerasi).
+4. App lock / PIN flow tetap berfungsi.
+5. Tidak ada file plaintext baru (hanya `db.key.enc` + `rona.db` SQLCipher).
+6. Debug log memuat "StrongBox unavailable, using Android Keystore fallback"
+   bila device mengiklankan feature tapi StrongBox gagal.
+7. Airplane mode: seluruh alur tetap berfungsi.
+8. Merged manifest debug & release tetap tanpa INTERNET.
+
+Device DENGAN StrongBox (bila ada): aplikasi memakai StrongBox (tanpa
+fallback); seluruh kriteria di atas tetap berlaku.
 
 ## Test fixture format
 
