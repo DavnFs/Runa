@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -11,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -73,11 +75,21 @@ fun AboutScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("Tentang rona", style = MaterialTheme.typography.headlineSmall)
-        Text("rona", style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(16.dp))
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(id.rona.app.R.drawable.img_logo_full),
+            contentDescription = "Logo rona — Menstrual cycle & wellness tracker",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+        )
+        Spacer(Modifier.height(16.dp))
         Text("Versi ${id.rona.app.BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
         Text(
             "Pelacak siklus pribadi, offline, tanpa jejak.",
