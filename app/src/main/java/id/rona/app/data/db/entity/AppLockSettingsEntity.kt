@@ -11,6 +11,7 @@ data class AppLockSettingsEntity(
     val pinHash: String? = null, // SENSITIVE — PBKDF2-HMAC-SHA256
     val pinSalt: String? = null, // SENSITIVE
     val pinIterations: Int = DEFAULT_PIN_ITERATIONS,
+    val pinLength: Int = 4,
     val gracePeriodSeconds: Int = DEFAULT_GRACE_SECONDS,
     val updatedAt: Long,
 ) {

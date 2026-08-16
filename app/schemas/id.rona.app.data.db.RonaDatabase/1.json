@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "e3df1cf60d3415abf0db8ad902e2f70d",
+    "identityHash": "41893be268a6da95657f54001675a559",
     "entities": [
       {
         "tableName": "local_profile",
@@ -348,7 +348,7 @@
       },
       {
         "tableName": "app_lock_settings",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `lockEnabled` INTEGER NOT NULL, `biometricEnabled` INTEGER NOT NULL, `pinHash` TEXT, `pinSalt` TEXT, `pinIterations` INTEGER NOT NULL, `gracePeriodSeconds` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `lockEnabled` INTEGER NOT NULL, `biometricEnabled` INTEGER NOT NULL, `pinHash` TEXT, `pinSalt` TEXT, `pinIterations` INTEGER NOT NULL, `pinLength` INTEGER NOT NULL, `gracePeriodSeconds` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -383,6 +383,12 @@
           {
             "fieldPath": "pinIterations",
             "columnName": "pinIterations",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pinLength",
+            "columnName": "pinLength",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -655,7 +661,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e3df1cf60d3415abf0db8ad902e2f70d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '41893be268a6da95657f54001675a559')"
     ]
   }
 }
