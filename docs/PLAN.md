@@ -451,7 +451,7 @@ data class LabelConfidence(val label: String, val confidence: Float)
 ## 13. Test Plan
 
 ### Unit (JVM, murni)
-- `CycleEngineTest`: panjang siklus dari selisih start; filter validitas (15–90 hari, configurable); median vs weighted mean; MAD & range prediksi (`±max(1, 1.5×MAD)` dengan cap); confidence band (≥5 siklus & MAD≤2 → HIGH; 3–4 siklus → MEDIUM; <3 → LOW); edge cases: <2 record, periode berlangsung, MAD tinggi, tahun kabisat, entri masa depan, duplikat start, end < start.
+- `CycleEngineTest`: panjang siklus dari selisih start; filter validitas (15–90 hari, configurable); median vs weighted mean; MAD & range prediksi (`±max(1, 1.5×MAD)` dengan cap); confidence band (<3 siklus atau MAD ≥ 5 → LOW; ≥5 siklus & MAD≤2 → HIGH; sisanya → MEDIUM); edge cases: <2 record, periode berlangsung, MAD tinggi, tahun kabisat, entri masa depan, duplikat start, end < start.
 - `StatisticsEngineTest`: rata-rata durasi, gejala tersering, bucket per fase ("awal/tengah/akhir" dinormalisasi terhadap panjang siklus).
 - `RuleBasedLogAnalyzerTest` (P1): korpus ~100 kalimat Indonesia; negasi; severity; threshold bands; blocklist diagnosis.
 - `BackupCodecTest`: round-trip; passphrase salah → gagal; 1 byte diubah → tag GCM gagal; salt unik antar export.
