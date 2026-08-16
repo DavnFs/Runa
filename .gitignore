@@ -1,0 +1,18 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+local.properties
+
+# OS
+.DS_Store
+
+# Keep Room schema dumps (needed for migration tests)
+!app/schemas/
+
+# Command Code tool-managed files
+.commandcode/
