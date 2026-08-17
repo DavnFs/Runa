@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +26,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rona.app.domain.engine.CyclePhase
 import id.rona.app.domain.engine.SymptomFrequency
 import id.rona.app.domain.model.SymptomType
+import id.rona.app.ui.components.RonaEmptyState
+import id.rona.app.ui.components.RonaLoadingSkeleton
+import id.rona.app.ui.home.RonaInsightCard
+import id.rona.app.ui.theme.LocalRonaColors
 
 @Composable
 fun InsightsScreen(
@@ -35,9 +39,7 @@ fun InsightsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.isLoading) {
-        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
+        RonaLoadingSkeleton(modifier = modifier.fillMaxSize(), message = "Menyiapkan pola…")
         return
     }
 
@@ -45,19 +47,29 @@ fun InsightsScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("Insight", style = MaterialTheme.typography.headlineSmall)
+        Text(
+            "Pola pada catatanmu — bukan diagnosis.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
         if (uiState.totalPeriods < 2) {
-            EmptyInsights()
+            RonaEmptyState(
+                icon = Icons.Rounded.QueryStats,
+                title = "Pola akan muncul perlahan",
+                message = "Semakin banyak catatan yang kamu simpan, semakin mudah melihat pola personalmu.",
+            )
             return@Column
         }
 
-        StatCard(
+        // ——— Max 3 meaningful summary blocks ———
+        RonaInsightCard(
             title = "Panjang siklus",
-            value = uiState.medianCycleLength?.let { "$it hari" } ?: "—",
+            text = uiState.medianCycleLength?.let { "$it hari" } ?: "—",
             supporting = buildString {
                 uiState.avgCycleLength?.let { append("rata-rata ${it.toInt()} hari") }
                 uiState.madCycleDays?.let {
@@ -67,21 +79,28 @@ fun InsightsScreen(
             },
         )
 
-        StatCard(
+        RonaInsightCard(
             title = "Durasi menstruasi",
-            value = uiState.medianPeriodDuration?.let { "$it hari" } ?: "—",
+            text = uiState.medianPeriodDuration?.let { "$it hari" } ?: "—",
             supporting = uiState.avgPeriodDuration?.let {
                 "rata-rata ${String.format(java.util.Locale.US, "%.1f", it)} hari"
             } ?: "",
         )
 
-        MostFrequentSymptoms(uiState.mostFrequentSymptoms)
+        val symptoms = uiState.mostFrequentSymptoms
+        if (symptoms.isNotEmpty()) {
+            MostFrequentSymptoms(symptoms)
+        }
 
-        PhaseDistributionCard(uiState.phaseDistribution)
+        // ——— Phase distribution: subtle tonal block ———
+        val distribution = uiState.phaseDistribution
+        if (distribution.isNotEmpty()) {
+            PhaseDistributionBlock(distribution)
+        }
 
         Text(
-            "Semua angka dihitung dari catatanmu di perangkat ini — bukan " +
-                "informasi medis dan bukan alat kontrasepsi.",
+            "Semua angka dihitung dari catatanmu di perangkat ini — " +
+                "informasi umum, bukan nasihat medis.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -89,92 +108,50 @@ fun InsightsScreen(
 }
 
 @Composable
-private fun EmptyInsights() {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            "Insight muncul setelah beberapa siklus tercatat.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            "Lanjutkan mencatat — rona belajar dari polamu.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-private fun StatCard(
-    title: String,
-    value: String,
-    supporting: String,
-) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(20.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(value, style = MaterialTheme.typography.headlineSmall)
-            if (supporting.isNotBlank()) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    supporting,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun MostFrequentSymptoms(items: List<SymptomFrequency>) {
-    if (items.isEmpty()) return
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(20.dp)) {
-            Text("Gejala paling sering tercatat", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(12.dp))
-            items.forEach { item ->
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(symptomLabel(item.symptomType), style = MaterialTheme.typography.bodyMedium)
-                    Text("${item.frequency}×", style = MaterialTheme.typography.bodyMedium)
-                }
+    val colors = LocalRonaColors.current
+    Column(Modifier.fillMaxWidth()) {
+        Text("Gejala paling sering", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(10.dp))
+        items.take(3).forEach { item ->
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(symptomLabel(item.symptomType), style = MaterialTheme.typography.bodyMedium)
+                Text("${item.frequency}×", style = MaterialTheme.typography.bodyMedium)
             }
         }
+        Spacer(Modifier.height(4.dp))
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .padding(horizontal = 0.dp)
+        )
     }
 }
 
 @Composable
-private fun PhaseDistributionCard(distribution: Map<CyclePhase, Int>) {
-    if (distribution.isEmpty()) return
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(20.dp)) {
-            Text("Catatan per fase siklus", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(12.dp))
-            CyclePhase.entries.forEach { phase ->
-                val count = distribution[phase] ?: 0
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        when (phase) {
-                            CyclePhase.EARLY -> "Awal siklus"
-                            CyclePhase.MIDDLE -> "Tengah siklus"
-                            CyclePhase.LATE -> "Akhir siklus"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text("$count hari", style = MaterialTheme.typography.bodyMedium)
-                }
+private fun PhaseDistributionBlock(distribution: Map<CyclePhase, Int>) {
+    Column(Modifier.fillMaxWidth()) {
+        Text("Catatan per fase siklus", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(10.dp))
+        CyclePhase.entries.forEach { phase ->
+            val count = distribution[phase] ?: 0
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    when (phase) {
+                        CyclePhase.EARLY -> "Awal siklus"
+                        CyclePhase.MIDDLE -> "Tengah siklus"
+                        CyclePhase.LATE -> "Akhir siklus"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text("$count hari", style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
