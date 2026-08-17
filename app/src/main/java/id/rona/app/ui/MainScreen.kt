@@ -27,7 +27,6 @@ fun MainScreen(
             RonaFloatingNavDock(
                 selected = selectedTab,
                 onDestinationSelected = { selectedTab = it },
-                onLogAction = onLogToday,
             )
         },
     ) { innerPadding ->

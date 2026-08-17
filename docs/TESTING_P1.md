@@ -1,5 +1,41 @@
 # Testing P1
 
+## P2 FINAL — icon-only dock physical validation checklist
+
+```bash
+adb uninstall id.rona.app
+adb install app/build/outputs/apk/debug/app-debug.apk
+adb logcat -c
+adb shell monkey -p id.rona.app -c android.intent.category.LAUNCHER 1
+adb logcat -b crash -d -v threadtime
+```
+
+Urutan manual (Infinix GT 30 Pro / Android 16):
+1. Fresh install atau upgrade tanpa kehilangan data.
+2. Onboarding → Home Empty.
+3. Home menampilkan CTA utama "Catat keadaanmu hari ini" (Empty & Success).
+4. Beranda ↔ Kalender ↔ Insight berulang:
+   - satu active capsule bergerak mulus antar 3 icon (200ms),
+   - dock tidak berubah ukuran,
+   - navigasi langsung jalan.
+5. Long-press tiap icon → tooltip "Beranda"/"Kalender"/"Insight" muncul.
+6. TalkBack: tiap icon punya label + "tab dipilih" + Role.Tab.
+7. CTA Home membuka LogEditorSheet; dock tidak menutupi CTA.
+8. Dock di font 1.0×/1.3×/1.5×: tidak ada perubahan (icon-only).
+9. Dock di 320dp/360dp: target tetap >=48dp, tidak ada clipping.
+10. Gesture nav & 3-button: spacing benar, tidak menutupi konten.
+11. Dark mode: kontras valid.
+12. Force-stop → relaunch; PIN/app lock tetap.
+13. `adb logcat -b crash -d` kosong.
+14. Merged manifest debug & release tanpa INTERNET.
+
+Arsitektur final dock:
+- 3 destination icon-only: Beranda (Home), Kalender (CalendarMonth),
+  Insight (AutoGraph).
+- Satu indicator capsule bergerak (posisi + lebar) — bukan per-item.
+- Tidak ada label permanen, tombol Catat, companion button, atau FAB.
+- Label via tooltip long-press + contentDescription + selected semantics.
+
 ## P2 Interaction & responsive — physical validation checklist
 
 ```bash

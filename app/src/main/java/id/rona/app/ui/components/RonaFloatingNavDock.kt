@@ -6,14 +6,8 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,28 +17,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoGraph
 import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.QueryStats
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -54,28 +50,25 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
+import id.rona.app.domain.model.ThemeMode
 import id.rona.app.ui.theme.LocalRonaColors
 import id.rona.app.ui.theme.RonaPillShape
 import id.rona.app.ui.theme.RonaTheme
 
 /**
- * Rona floating pill navigation dock — Google Photos-inspired structure with
- * Rona's own ink-plum + dusty-rose identity.
+ * Rona floating pill navigation dock — FINAL: icon-only, 3 destinations.
  *
- *   ┌─────────────────────────────┐   ┌──────┐
- *   │  Beranda   Kalender  ✎ Catat│   │  ◌   │
- *   └─────────────────────────────┘   └──────┘
- *                                            Insight
+ *   ┌────────────────────────────┐
+ *   │       ◉      □      ◌       │
+ *   └────────────────────────────┘
  *
- * - Beranda / Kalender: TEXT-FIRST destinations. A single animated capsule
- *   moves between them (position + width), labels never disappear.
- * - Catat: integrated primary rose action (pencil + label), opens the log
- *   editor — not a navigation destination.
- * - Insight: detached circular companion with a persistent small label.
- *
- * Motion: 200ms FastOutSlowIn, no bounce, no layout jump, navigation never
- * waits for the animation.
+ * - Beranda / Kalender / Insight: pure navigation. NO visible labels,
+ *   NO Catat action (the primary CTA lives on Beranda), NO companion button.
+ * - A single active capsule moves between icons (position + width),
+ *   200ms FastOutSlowIn; icon color + subtle scale animate too.
+ * - Labels are available via long-press tooltip, TalkBack contentDescription,
+ *   and the selected semantic state.
  */
 enum class RonaDockDestination(val label: String) {
     HOME("Beranda"),
@@ -87,11 +80,10 @@ enum class RonaDockDestination(val label: String) {
 object RonaDockTokens {
     val Height = 64.dp
     val CornerRadius = 32.dp
-    val CompanionSize = 60.dp
-    val CompanionGap = 12.dp
-    val HorizontalMargin = 16.dp
+    val HorizontalMargin = 20.dp
     val BottomOffset = 12.dp
     val MinTouchTarget = 48.dp
+    val ItemSpacing = 4.dp
 
     /** Clearance reserved below page content so the dock never covers it. */
     val ContentClearance: Dp = Height + BottomOffset + 8.dp
@@ -101,342 +93,244 @@ object RonaDockTokens {
 fun RonaFloatingNavDock(
     selected: RonaDockDestination,
     onDestinationSelected: (RonaDockDestination) -> Unit,
-    onLogAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalRonaColors.current
 
-    BoxWithConstraints(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = RonaDockTokens.HorizontalMargin, vertical = RonaDockTokens.BottomOffset),
+            .padding(
+                horizontal = RonaDockTokens.HorizontalMargin,
+                vertical = RonaDockTokens.BottomOffset,
+            ),
     ) {
-        val compact = maxWidth < 360.dp
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(RonaDockTokens.CompanionGap),
-            verticalAlignment = Alignment.CenterVertically,
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 340.dp),
+            shape = RonaPillShape,
+            color = colors.dockSurface,
+            contentColor = colors.dockContent,
+            tonalElevation = 4.dp,
+            shadowElevation = 8.dp,
+            border = BorderStroke(1.dp, colors.dockBorder),
         ) {
-            // ————— Main pill —————
-            Surface(
-                modifier = Modifier
-                    .weight(1f, fill = true)
-                    .widthIn(max = 340.dp),
-                shape = RonaPillShape,
-                color = colors.dockSurface,
-                contentColor = colors.dockContent,
-                tonalElevation = 4.dp,
-                shadowElevation = 8.dp,
-                border = BorderStroke(1.dp, colors.dockBorder),
-            ) {
-                MainPillContent(
-                    selected = selected,
-                    onDestinationSelected = onDestinationSelected,
-                    onLogAction = onLogAction,
-                    compact = compact,
-                )
-            }
-
-            // ————— Companion Insight —————
-            CompanionInsightButton(
-                icon = Icons.Rounded.QueryStats,
-                label = RonaDockDestination.INSIGHTS.label,
-                selected = selected == RonaDockDestination.INSIGHTS,
-                onClick = { onDestinationSelected(RonaDockDestination.INSIGHTS) },
+            DockPillContent(
+                selected = selected,
+                onDestinationSelected = onDestinationSelected,
             )
         }
     }
 }
 
 /**
- * Inner pill content: two text-first destinations + primary Catat action.
- * A single animated capsule tracks the selected destination.
+ * Inner pill: three equal icon targets + one moving active capsule.
  */
 @Composable
-private fun MainPillContent(
+private fun DockPillContent(
     selected: RonaDockDestination,
     onDestinationSelected: (RonaDockDestination) -> Unit,
-    onLogAction: () -> Unit,
-    compact: Boolean,
 ) {
     val colors = LocalRonaColors.current
     val density = LocalDensity.current
+    val destinations = RonaDockDestination.entries
 
-    val destinations = listOf(
-        RonaDockDestination.HOME,
-        RonaDockDestination.CALENDAR,
-    )
+    // Measured geometry (px) of each item, relative to the pill's Row.
+    val itemX = remember { mutableStateMapOf<RonaDockDestination, Int>() }
+    val itemWidth = remember { mutableStateMapOf<RonaDockDestination, Int>() }
 
-    // Measured widths (pixels) of each destination item.
-    var homeWidthPx by remember { mutableStateOf(0) }
-    var calendarWidthPx by remember { mutableStateOf(0) }
+    val defaultWidthPx = with(density) { 56.dp.roundToPx() }
+    val spacingPx = with(density) { RonaDockTokens.ItemSpacing.roundToPx() }
 
-    val homeWidth = with(density) { homeWidthPx.toDp() }
-    val calendarWidth = with(density) { calendarWidthPx.toDp() }
+    fun xOf(d: RonaDockDestination): Int =
+        itemX[d] ?: (destinations.indexOf(d) * (defaultWidthPx + spacingPx))
+    fun widthOf(d: RonaDockDestination): Int = itemWidth[d] ?: defaultWidthPx
 
-    val selectedItem = if (selected == RonaDockDestination.INSIGHTS) {
-        RonaDockDestination.HOME
-    } else {
-        selected
-    }
-
-    // Indicator offset = width of items before the selected one.
     val indicatorOffset by animateDpAsState(
-        targetValue = if (selectedItem == RonaDockDestination.CALENDAR) homeWidth else 0.dp,
+        targetValue = with(density) { xOf(selected).toDp() },
         animationSpec = tween(200, easing = FastOutSlowInEasing),
-        label = "indicatorOffset",
+        label = "dockIndicatorOffset",
     )
     val indicatorWidth by animateDpAsState(
-        targetValue = if (selectedItem == RonaDockDestination.CALENDAR) calendarWidth else homeWidth,
+        targetValue = with(density) { widthOf(selected).toDp() },
         animationSpec = tween(200, easing = FastOutSlowInEasing),
-        label = "indicatorWidth",
+        label = "dockIndicatorWidth",
     )
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(RonaDockTokens.Height)
-            .padding(horizontal = 4.dp, vertical = 8.dp),
+            .height(RonaDockTokens.Height),
+        contentAlignment = Alignment.Center,
     ) {
-        // ————— Animated active capsule —————
+        // ————— Single moving active capsule —————
         if (indicatorWidth > 0.dp) {
             Surface(
                 modifier = Modifier
+                    .align(Alignment.CenterStart)
                     .offset(x = indicatorOffset)
                     .width(indicatorWidth)
-                    .height(RonaDockTokens.Height - 16.dp),
+                    .height(RonaDockTokens.MinTouchTarget),
                 shape = RonaPillShape,
                 color = colors.dockSelectedContainer,
             ) {}
         }
 
-        // ————— Items on top —————
+        // ————— Icon targets —————
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth(),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(RonaDockTokens.ItemSpacing),
         ) {
-            DockTextItem(
-                label = RonaDockDestination.HOME.label,
-                selected = selectedItem == RonaDockDestination.HOME,
-                compact = compact,
-                onClick = { onDestinationSelected(RonaDockDestination.HOME) },
-                modifier = Modifier
-                    .weight(1f)
-                    .onSizeChanged { homeWidthPx = it.width },
-            )
-            DockTextItem(
-                label = RonaDockDestination.CALENDAR.label,
-                selected = selectedItem == RonaDockDestination.CALENDAR,
-                compact = compact,
-                onClick = { onDestinationSelected(RonaDockDestination.CALENDAR) },
-                modifier = Modifier
-                    .weight(1f)
-                    .onSizeChanged { calendarWidthPx = it.width },
-            )
-            DockPrimaryAction(
-                icon = Icons.Rounded.Edit,
-                label = "Catat",
-                onClick = onLogAction,
-                modifier = Modifier.weight(1.4f),
-            )
+            destinations.forEach { destination ->
+                DockIconItem(
+                    destination = destination,
+                    selected = destination == selected,
+                    onClick = { onDestinationSelected(destination) },
+                    onMeasured = { x, w ->
+                        itemX[destination] = x
+                        itemWidth[destination] = w
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DockTextItem(
-    label: String,
+private fun DockIconItem(
+    destination: RonaDockDestination,
     selected: Boolean,
-    compact: Boolean,
     onClick: () -> Unit,
+    onMeasured: (x: Int, width: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalRonaColors.current
-    val textColor by animateColorAsState(
-        targetValue = if (selected) colors.onDockSelectedContainer else colors.dockInactiveContent,
+    val tooltipState = rememberTooltipState()
+
+    val iconColor by animateColorAsState(
+        targetValue = if (selected) colors.dockContent else colors.dockInactiveContent,
         animationSpec = tween(200, easing = FastOutSlowInEasing),
-        label = "dockTextColor",
+        label = "dockIconColor",
     )
-    val labelAlpha by animateFloatAsState(
-        targetValue = if (selected) 1f else 0.72f,
+    val iconScale by animateFloatAsState(
+        targetValue = if (selected) 1f else 0.94f,
         animationSpec = tween(200, easing = FastOutSlowInEasing),
-        label = "dockLabelAlpha",
+        label = "dockIconScale",
     )
 
+    // Outer Surface carries the click + semantics; TooltipBox wraps only the
+    // visual icon so semantics stay merged and TalkBack/long-press both work.
     Surface(
         onClick = onClick,
         shape = RonaPillShape,
         color = Color.Transparent,
-        contentColor = textColor,
+        contentColor = iconColor,
         modifier = modifier
-            .height(RonaDockTokens.Height - 16.dp)
-            .semantics {
-                this.selected = selected
-                this.role = Role.Tab
-                contentDescription = if (selected) "$label, tab dipilih" else label
-            },
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            // Compact mode: icon + label; normal mode: text-first (no icon).
-            if (compact) {
-                Icon(
-                    imageVector = if (label == "Beranda") Icons.Rounded.Home else Icons.Rounded.CalendarMonth,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(4.dp))
+            .height(RonaDockTokens.MinTouchTarget)
+            .onGloballyPositioned { coords ->
+                onMeasured(coords.positionInWindow().x.roundToInt(), coords.size.width)
             }
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                modifier = Modifier.alpha(labelAlpha),
-            )
-        }
-    }
-}
-
-@Composable
-private fun DockPrimaryAction(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = LocalRonaColors.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    // Gentle press feedback ~120ms, no bounce.
-    val pressScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = tween(120),
-        label = "catatPress",
-    )
-
-    Surface(
-        onClick = onClick,
-        interactionSource = interactionSource,
-        shape = RonaPillShape,
-        color = colors.cyclePrimary,
-        contentColor = colors.onCyclePrimary,
-        tonalElevation = 2.dp,
-        shadowElevation = 4.dp,
-        modifier = modifier
-            .height(RonaDockTokens.Height - 16.dp)
-            .scale(pressScale)
-            .semantics {
-                role = Role.Button
-                contentDescription = "Catat keadaanmu hari ini"
-            },
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                maxLines = 1,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CompanionInsightButton(
-    icon: ImageVector,
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val colors = LocalRonaColors.current
-    val containerColor by animateColorAsState(
-        targetValue = if (selected) colors.dockSelectedContainer else colors.dockSurface,
-        animationSpec = tween(200, easing = FastOutSlowInEasing),
-        label = "insightContainer",
-    )
-    val contentColor by animateColorAsState(
-        targetValue = if (selected) colors.onDockSelectedContainer else colors.dockContent,
-        animationSpec = tween(200, easing = FastOutSlowInEasing),
-        label = "insightContent",
-    )
-
-    Surface(
-        onClick = onClick,
-        shape = CircleShape,
-        color = containerColor,
-        contentColor = contentColor,
-        tonalElevation = 4.dp,
-        shadowElevation = 8.dp,
-        border = BorderStroke(1.dp, colors.dockBorder),
-        modifier = Modifier
-            .size(RonaDockTokens.CompanionSize)
             .semantics {
                 this.selected = selected
                 this.role = Role.Tab
-                contentDescription = if (selected) "$label, tab dipilih" else label
+                contentDescription = if (selected) {
+                    "${destination.label}, tab dipilih"
+                } else {
+                    destination.label
+                }
             },
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(22.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                fontSize = 10.sp,
-                maxLines = 1,
-            )
+        Box(contentAlignment = Alignment.Center) {
+            TooltipBox(
+                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                tooltip = {
+                    Surface(
+                        shape = RonaPillShape,
+                        color = colors.dockSurface,
+                        tonalElevation = 4.dp,
+                        shadowElevation = 8.dp,
+                    ) {
+                        Text(
+                            text = destination.label,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = colors.dockContent,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        )
+                    }
+                },
+                state = rememberTooltipState(),
+            ) {
+                Icon(
+                    imageVector = destination.icon(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .scale(iconScale),
+                )
+            }
         }
     }
+}
+
+private fun RonaDockDestination.icon(): ImageVector = when (this) {
+    RonaDockDestination.HOME -> Icons.Rounded.Home
+    RonaDockDestination.CALENDAR -> Icons.Rounded.CalendarMonth
+    RonaDockDestination.INSIGHTS -> Icons.Rounded.AutoGraph
 }
 
 // ───────────────────────── Previews ─────────────────────────
 
-@Preview(name = "Dock — Beranda selected", showBackground = true, widthDp = 390)
+@Preview(name = "Dock — Beranda selected, light", showBackground = true, widthDp = 390)
 @Composable
-private fun DockBerandaPreview() {
+private fun DockBerandaLightPreview() {
     RonaTheme {
         RonaFloatingNavDock(
             selected = RonaDockDestination.HOME,
             onDestinationSelected = {},
-            onLogAction = {},
         )
     }
 }
 
-@Preview(name = "Dock — Kalender selected", showBackground = true, widthDp = 390)
+@Preview(name = "Dock — Kalender selected, light", showBackground = true, widthDp = 390)
 @Composable
-private fun DockKalenderPreview() {
+private fun DockKalenderLightPreview() {
     RonaTheme {
         RonaFloatingNavDock(
             selected = RonaDockDestination.CALENDAR,
             onDestinationSelected = {},
-            onLogAction = {},
         )
     }
 }
 
-@Preview(name = "Dock — Insight selected", showBackground = true, widthDp = 390)
+@Preview(name = "Dock — Insight selected, light", showBackground = true, widthDp = 390)
 @Composable
-private fun DockInsightPreview() {
+private fun DockInsightLightPreview() {
     RonaTheme {
         RonaFloatingNavDock(
             selected = RonaDockDestination.INSIGHTS,
             onDestinationSelected = {},
-            onLogAction = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Dock — Beranda selected, dark",
+    showBackground = true,
+    widthDp = 390,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun DockBerandaDarkPreview() {
+    RonaTheme(themeMode = ThemeMode.DARK) {
+        RonaFloatingNavDock(
+            selected = RonaDockDestination.HOME,
+            onDestinationSelected = {},
         )
     }
 }
@@ -448,7 +342,6 @@ private fun DockNarrowPreview() {
         RonaFloatingNavDock(
             selected = RonaDockDestination.HOME,
             onDestinationSelected = {},
-            onLogAction = {},
         )
     }
 }
@@ -465,24 +358,6 @@ private fun DockLargeFontPreview() {
         RonaFloatingNavDock(
             selected = RonaDockDestination.HOME,
             onDestinationSelected = {},
-            onLogAction = {},
-        )
-    }
-}
-
-@Preview(
-    name = "Dock — narrow 320dp dark",
-    showBackground = true,
-    widthDp = 320,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
-)
-@Composable
-private fun DockNarrowDarkPreview() {
-    RonaTheme(themeMode = id.rona.app.domain.model.ThemeMode.DARK) {
-        RonaFloatingNavDock(
-            selected = RonaDockDestination.CALENDAR,
-            onDestinationSelected = {},
-            onLogAction = {},
         )
     }
 }
