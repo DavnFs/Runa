@@ -1,23 +1,19 @@
 package id.rona.app.ui.components
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Edit
@@ -31,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -39,11 +34,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.rona.app.ui.theme.LocalRonaColors
 import id.rona.app.ui.theme.RonaMotion
 import id.rona.app.ui.theme.RonaPillShape
+import id.rona.app.ui.theme.RonaTheme
 
 /**
  * Rona floating pill navigation dock.
@@ -77,7 +74,6 @@ fun RonaFloatingNavDock(
     showLabels: Boolean = true,
 ) {
     val colors = LocalRonaColors.current
-    val dockShape = RonaPillShape
 
     Row(
         modifier = modifier
@@ -92,12 +88,12 @@ fun RonaFloatingNavDock(
             modifier = Modifier
                 .widthIn(min = 0.dp, max = 340.dp)
                 .weight(1f, fill = true),
-            shape = dockShape,
+            shape = RonaPillShape,
             color = colors.dockSurface,
             contentColor = colors.dockContent,
             tonalElevation = 4.dp,
             shadowElevation = 8.dp,
-            border = androidx.compose.foundation.BorderStroke(1.dp, colors.dockBorder),
+            border = BorderStroke(1.dp, colors.dockBorder),
         ) {
             Row(
                 modifier = Modifier
@@ -258,7 +254,7 @@ private fun CompanionInsightButton(
         contentColor = contentColor,
         tonalElevation = 4.dp,
         shadowElevation = 8.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.dockBorder),
+        border = BorderStroke(1.dp, colors.dockBorder),
         modifier = Modifier
             .size(60.dp)
             .semantics {
@@ -279,5 +275,73 @@ private fun CompanionInsightButton(
                 maxLines = 1,
             )
         }
+    }
+}
+
+// ───────────────────────── Previews ─────────────────────────
+
+@Preview(name = "Dock — Beranda selected", showBackground = true, widthDp = 390)
+@Composable
+private fun DockBerandaPreview() {
+    RonaTheme {
+        RonaFloatingNavDock(
+            selected = RonaDockDestination.HOME,
+            onDestinationSelected = {},
+            onLogAction = {},
+        )
+    }
+}
+
+@Preview(name = "Dock — Kalender selected", showBackground = true, widthDp = 390)
+@Composable
+private fun DockKalenderPreview() {
+    RonaTheme {
+        RonaFloatingNavDock(
+            selected = RonaDockDestination.CALENDAR,
+            onDestinationSelected = {},
+            onLogAction = {},
+        )
+    }
+}
+
+@Preview(name = "Dock — Insight selected", showBackground = true, widthDp = 390)
+@Composable
+private fun DockInsightPreview() {
+    RonaTheme {
+        RonaFloatingNavDock(
+            selected = RonaDockDestination.INSIGHTS,
+            onDestinationSelected = {},
+            onLogAction = {},
+        )
+    }
+}
+
+@Preview(name = "Dock — narrow width", showBackground = true, widthDp = 320)
+@Composable
+private fun DockNarrowPreview() {
+    RonaTheme {
+        RonaFloatingNavDock(
+            selected = RonaDockDestination.HOME,
+            onDestinationSelected = {},
+            onLogAction = {},
+            showLabels = false,
+        )
+    }
+}
+
+@Preview(
+    name = "Dock — large font scale",
+    showBackground = true,
+    widthDp = 390,
+    fontScale = 1.5f,
+)
+@Composable
+private fun DockLargeFontPreview() {
+    RonaTheme {
+        RonaFloatingNavDock(
+            selected = RonaDockDestination.HOME,
+            onDestinationSelected = {},
+            onLogAction = {},
+        )
     }
 }

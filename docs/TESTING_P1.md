@@ -1,5 +1,34 @@
 # Testing P1
 
+## P1 Visual Design System — physical validation checklist
+
+```bash
+adb uninstall id.rona.app
+adb install app/build/outputs/apk/debug/app-debug.apk
+adb logcat -c
+adb shell monkey -p id.rona.app -c android.intent.category.LAUNCHER 1
+adb logcat -b crash -d -v threadtime
+```
+
+Urutan manual (Infinix GT 30 Pro / Android 16):
+1. Fresh install (atau upgrade tanpa kehilangan data).
+2. Onboarding.
+3. Home harus Empty (tanpa data) — hero ring "Belum ada data".
+4. Catat periode → Home Success (ring "Hari ke-N").
+5. Buka Kalender → sel actual solid rose; prediksi outline; dot log.
+6. Ketuk hari → bottom sheet detail muncul.
+7. Dari dock: "Catat" → LogEditorSheet terbuka; simpan catatan.
+8. "Insight" (companion) → halaman Insight; "Pola akan muncul perlahan".
+9. Dark mode → dock tetap kontras (plum lebih terang dari canvas).
+10. Font besar (1.3×) → tidak ada overlap/tab terpotong.
+11. Gesture nav & 3-button nav → dock tidak menutupi konten (bottom inset).
+12. Force-stop → relaunch → data & lock tetap.
+13. App lock on/off → unlock lalu Home tetap bekerja.
+14. Tidak ada crash startup (SQLCipher/StrongBox) di `logcat -b crash`.
+
+Catatan: dock sengaja gelap (ink/plum) di light theme — ini keputusan desain
+(identitas), bukan bug. Dynamic color default OFF (palet Rona).
+
 ## Test commands
 
 ```bash
