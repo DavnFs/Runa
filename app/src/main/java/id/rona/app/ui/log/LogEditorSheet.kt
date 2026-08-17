@@ -6,9 +6,14 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -142,31 +147,33 @@ fun LogEditorSheet(
         }
 
         // ——— Energi ———
-        RonaSection(title = "Energi") {
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                Energy.entries.forEachIndexed { index, energy ->
-                    SegmentedButton(
+        RonaSection(title = "Energi", supporting = "Rendah — Sedang — Tinggi") {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Energy.entries.forEach { energy ->
+                    RonaSelectableChip(
+                        label = energyLabel(energy),
                         selected = uiState.energy == energy,
                         onClick = { viewModel.selectEnergy(if (uiState.energy == energy) null else energy) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = Energy.entries.size),
-                    ) {
-                        Text(energyLabel(energy))
-                    }
+                    )
                 }
             }
         }
 
         // ——— Mood ———
         RonaSection(title = "Mood") {
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                Mood.entries.forEachIndexed { index, mood ->
-                    SegmentedButton(
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Mood.entries.forEach { mood ->
+                    RonaSelectableChip(
+                        label = moodLabel(mood),
                         selected = uiState.mood == mood,
                         onClick = { viewModel.selectMood(if (uiState.mood == mood) null else mood) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = Mood.entries.size),
-                    ) {
-                        Text(moodLabel(mood))
-                    }
+                    )
                 }
             }
         }
@@ -205,11 +212,14 @@ fun LogEditorSheet(
         Spacer(Modifier.height(4.dp))
     }
 
-    // ————— Sticky bottom CTA —————
+    // ————— Sticky bottom CTA (IME-aware, tidak dobel inset) —————
     val colors = LocalRonaColors.current
     Surface(
         color = colors.pageCanvas,
         shadowElevation = 8.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(WindowInsets.ime.only(WindowInsetsSides.Bottom).asPaddingValues()),
     ) {
         Row(
             Modifier

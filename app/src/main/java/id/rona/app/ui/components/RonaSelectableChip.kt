@@ -2,6 +2,7 @@ package id.rona.app.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +20,8 @@ import id.rona.app.ui.theme.LocalRonaColors
 
 /**
  * Tactile, readable selectable chip for symptoms / quick options.
- * Selected state: rose container + check-free clear fill (not color-only).
+ * Selected state: rose container + border (not color-only) + semantics.
+ * Minimum height 44dp; wraps naturally inside FlowRow.
  */
 @Composable
 fun RonaSelectableChip(
@@ -45,7 +47,9 @@ fun RonaSelectableChip(
         },
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier = Modifier
+                .heightIn(min = 44.dp)
+                .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
