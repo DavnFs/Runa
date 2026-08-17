@@ -1,11 +1,14 @@
 package id.rona.app.ui.settings
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,7 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rona.app.domain.model.ThemeMode
+import id.rona.app.ui.components.RonaSelectableChip
+import id.rona.app.ui.theme.LocalRonaColors
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AppearanceSettingsScreen(
     onBack: () -> Unit,
@@ -28,32 +34,36 @@ fun AppearanceSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val colors = LocalRonaColors.current
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text("Tampilan", style = MaterialTheme.typography.headlineSmall)
 
-        listOf(
-            ThemeMode.SYSTEM to "Ikuti sistem",
-            ThemeMode.LIGHT to "Terang",
-            ThemeMode.DARK to "Gelap",
-        ).forEach { (mode, label) ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clickable { viewModel.setThemeMode(mode) }
-                    .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(label, style = MaterialTheme.typography.bodyLarge)
-                if (uiState.themeMode == mode) {
-                    Text("✓", color = MaterialTheme.colorScheme.primary)
-                }
+        Text(
+            "Tema",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            listOf(
+                ThemeMode.SYSTEM to "Ikuti sistem",
+                ThemeMode.LIGHT to "Terang",
+                ThemeMode.DARK to "Gelap",
+            ).forEach { (mode, label) ->
+                RonaSelectableChip(
+                    label = label,
+                    selected = uiState.themeMode == mode,
+                    onClick = { viewModel.setThemeMode(mode) },
+                )
             }
         }
 
@@ -62,7 +72,7 @@ fun AppearanceSettingsScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text("Izinkan screenshot", style = MaterialTheme.typography.bodyLarge)
                 Text(
                     "Default: diblokir demi privasi (tampilan kabur di daftar aplikasi terbaru).",
@@ -70,6 +80,7 @@ fun AppearanceSettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            Spacer(Modifier.height(0.dp))
             Switch(
                 checked = uiState.allowScreenshots,
                 onCheckedChange = viewModel::setAllowScreenshots,

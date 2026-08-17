@@ -1,6 +1,5 @@
 package id.rona.app.ui.settings
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,15 +15,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Badge
-import androidx.compose.material.icons.rounded.Description
-import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Storage
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,12 +29,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rona.app.ui.components.RonaLoadingSkeleton
+import id.rona.app.ui.components.RonaSettingsRow
 import id.rona.app.ui.theme.LocalRonaColors
 
 @Composable
@@ -72,16 +68,16 @@ fun SettingsScreen(
         PrivacyReassuranceBanner()
 
         SettingsGroup(title = "Privasi & keamanan") {
-            SettingsRow(Icons.Rounded.Lock, "Keamanan", "PIN, biometrik, kunci otomatis", onSecurity)
-            SettingsRow(Icons.Rounded.Notifications, "Notifikasi", "Pengingat & privasi notifikasi", onNotifications)
-            SettingsRow(Icons.Rounded.Storage, "Backup", "Export & restore terenkripsi", onBackup)
-            SettingsRow(Icons.Rounded.Shield, "Data & privasi", "Hapus data lokal", onDelete)
+            RonaSettingsRow(Icons.Rounded.Lock, "Keamanan", "PIN, biometrik, kunci otomatis", onSecurity)
+            RonaSettingsRow(Icons.Rounded.Notifications, "Notifikasi", "Pengingat & privasi notifikasi", onNotifications)
+            RonaSettingsRow(Icons.Rounded.Storage, "Backup", "Export & restore terenkripsi", onBackup)
+            RonaSettingsRow(Icons.Rounded.Shield, "Data & privasi", "Hapus data lokal", onDelete)
         }
 
         SettingsGroup(title = "Aplikasi") {
-            SettingsRow(Icons.Rounded.Palette, "Tampilan", "Tema & warna", onAppearance)
-            SettingsRow(Icons.Rounded.Badge, "Kebijakan privasi", "Tanpa akun, tanpa cloud, tanpa pelacak", onPrivacyPolicy)
-            SettingsRow(Icons.Rounded.Info, "Tentang rona", "Versi & informasi", onAbout)
+            RonaSettingsRow(Icons.Rounded.Palette, "Tampilan", "Tema & warna", onAppearance)
+            RonaSettingsRow(Icons.Rounded.Badge, "Kebijakan privasi", "Tanpa akun, tanpa cloud, tanpa pelacak", onPrivacyPolicy)
+            RonaSettingsRow(Icons.Rounded.Info, "Tentang rona", "Versi & informasi", onAbout)
         }
     }
 }
@@ -136,45 +132,5 @@ private fun SettingsGroup(
                 content()
             }
         }
-    }
-}
-
-@Composable
-private fun SettingsRow(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    showDivider: Boolean = true,
-) {
-    val colors = LocalRonaColors.current
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = colors.cyclePrimary,
-            modifier = Modifier.size(22.dp),
-        )
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-    if (showDivider) {
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            color = colors.dividerSubtle,
-        )
     }
 }
