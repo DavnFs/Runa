@@ -18,22 +18,19 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,11 +40,16 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.rona.app.ui.components.RonaLoadingSkeleton
+import id.rona.app.ui.theme.LocalRonaColors
+import id.rona.app.ui.theme.RonaBottomSheetShape
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private val weekdayLabels = listOf("Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab")
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
@@ -56,16 +58,14 @@ fun CalendarScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.isLoading) {
-        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
+        RonaLoadingSkeleton(modifier = modifier.fillMaxSize(), message = "Memuat kalender…")
         return
     }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
         MonthHeader(
             yearMonth = uiState.yearMonth,
@@ -96,10 +96,17 @@ fun CalendarScreen(
     if (selectedDay != null) {
         val selectedCell = uiState.days.firstOrNull { it.date == selectedDay }
         if (selectedCell != null) {
-            DayDetailDialog(
-                day = selectedCell,
-                onDismiss = viewModel::dismissDayDetail,
-            )
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ModalBottomSheet(
+                onDismissRequest = viewModel::dismissDayDetail,
+                sheetState = sheetState,
+                shape = RonaBottomSheetShape,
+            ) {
+                DayDetailSheet(
+                    day = selectedCell,
+                    onDismiss = viewModel::dismissDayDetail,
+                )
+            }
         }
     }
 }
@@ -122,6 +129,7 @@ private fun MonthHeader(
                 .replaceFirstChar { it.uppercase() } + " " + yearMonth.year,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.weight(1f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
         IconButton(onClick = onNext) {
             Icon(Icons.Rounded.ChevronRight, contentDescription = "Bulan berikutnya")
@@ -150,8 +158,8 @@ private fun DayCell(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    val actualColor = MaterialTheme.colorScheme.primary
-    val predictedColor = MaterialTheme.colorScheme.tertiary
+    val colors = LocalRonaColors.current
+    val isToday = day.date == LocalDate.now()
 
     Box(
         modifier = Modifier
@@ -159,7 +167,7 @@ private fun DayCell(
             .clip(CircleShape)
             .background(
                 when {
-                    isSelected -> MaterialTheme.colorScheme.secondaryContainer
+                    isSelected -> colors.cycleContainer
                     else -> Color.Transparent
                 }
             )
@@ -170,58 +178,56 @@ private fun DayCell(
                     if (day.isPeriodActual) append(", menstruasi tercatat")
                     if (day.isPredicted) append(", perkiraan periode")
                     if (day.hasLog) append(", ada catatan")
+                    if (isToday) append(", hari ini")
                 }
             },
         contentAlignment = Alignment.Center,
     ) {
+        // Actual period: solid filled rose circle.
         if (day.isPeriodActual) {
             Box(
                 Modifier
                     .fillMaxSize(0.72f)
                     .clip(CircleShape)
-                    .background(actualColor)
-            )
-            Text(
-                text = day.date.dayOfMonth.toString(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimary,
+                    .background(colors.cyclePrimary)
             )
         } else if (day.isPredicted) {
+            // Prediction: outline only (not color-dependent).
             Box(
                 Modifier
                     .fillMaxSize(0.72f)
                     .clip(CircleShape)
-                    .background(predictedColor.copy(alpha = 0.3f))
-                    .border(
-                        width = 1.dp,
-                        color = predictedColor,
-                        shape = CircleShape,
-                    )
-            )
-            Text(
-                text = day.date.dayOfMonth.toString(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        } else {
-            Text(
-                text = day.date.dayOfMonth.toString(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (day.inCurrentMonth) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                },
+                    .border(1.5.dp, colors.plumAccent, CircleShape)
             )
         }
 
+        // Today: restrained ring.
+        if (isToday) {
+            Box(
+                Modifier
+                    .fillMaxSize(0.9f)
+                    .border(1.5.dp, colors.cyclePrimary, CircleShape)
+            )
+        }
+
+        Text(
+            text = day.date.dayOfMonth.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = when {
+                day.isPeriodActual -> colors.onCyclePrimary
+                !day.inCurrentMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                else -> MaterialTheme.colorScheme.onSurface
+            },
+        )
+
+        // Daily log dot.
         if (day.hasLog) {
             Box(
                 Modifier
                     .size(6.dp)
                     .align(Alignment.BottomCenter)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurfaceVariant)
+                    .background(colors.inkTertiary)
             )
         }
     }
@@ -229,6 +235,7 @@ private fun DayCell(
 
 @Composable
 private fun Legend() {
+    val colors = LocalRonaColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -236,48 +243,81 @@ private fun Legend() {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        LegendItem(color = MaterialTheme.colorScheme.primary, label = "Menstruasi tercatat")
-        LegendItem(color = MaterialTheme.colorScheme.tertiary, label = "Perkiraan")
+        LegendItem(color = colors.cyclePrimary, label = "Menstruasi tercatat")
+        LegendItem(color = colors.plumAccent, label = "Perkiraan", outlined = true)
     }
 }
 
 @Composable
-private fun LegendItem(color: Color, label: String) {
+private fun LegendItem(color: Color, label: String, outlined: Boolean = false) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(10.dp).clip(CircleShape).background(color))
+        if (outlined) {
+            Box(
+                Modifier
+                    .size(12.dp)
+                    .border(1.5.dp, color, CircleShape)
+            )
+        } else {
+            Box(Modifier.size(12.dp).clip(CircleShape).background(color))
+        }
         Spacer(Modifier.size(6.dp))
         Text(label, style = MaterialTheme.typography.labelSmall)
     }
 }
 
 @Composable
-private fun DayDetailDialog(
+private fun DayDetailSheet(
     day: CalendarDay,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(day.date.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale("id", "ID"))))
-        },
-        text = {
-            Column {
-                if (day.isPeriodActual) {
-                    Text("• Menstruasi tercatat")
-                }
-                if (day.isPredicted) {
-                    Text("• Perkiraan periode")
-                }
-                if (day.hasLog) {
-                    Text("• Ada catatan harian")
-                }
-                if (!day.isPeriodActual && !day.isPredicted && !day.hasLog) {
-                    Text("Tidak ada catatan untuk tanggal ini.")
-                }
+    val colors = LocalRonaColors.current
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            day.date.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale("id", "ID"))),
+            style = MaterialTheme.typography.titleLarge,
+        )
+        Spacer(Modifier.height(4.dp))
+        if (day.isPeriodActual) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(12.dp).clip(CircleShape).background(colors.cyclePrimary))
+                Spacer(Modifier.size(8.dp))
+                Text("Menstruasi tercatat", style = MaterialTheme.typography.bodyLarge)
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Tutup") }
-        },
-    )
+        }
+        if (day.isPredicted) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier
+                        .size(12.dp)
+                        .border(1.5.dp, colors.plumAccent, CircleShape)
+                )
+                Spacer(Modifier.size(8.dp))
+                Text("Perkiraan periode", style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+        if (day.hasLog) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(12.dp).clip(CircleShape).background(colors.inkTertiary))
+                Spacer(Modifier.size(8.dp))
+                Text("Ada catatan harian", style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+        if (!day.isPeriodActual && !day.isPredicted && !day.hasLog) {
+            Text(
+                "Tidak ada catatan untuk tanggal ini.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+            Text("Tutup")
+        }
+    }
 }
