@@ -1,5 +1,45 @@
 # Testing P1
 
+## P2 Interaction & responsive — physical validation checklist
+
+```bash
+adb uninstall id.rona.app
+adb install app/build/outputs/apk/debug/app-debug.apk
+adb logcat -c
+adb shell monkey -p id.rona.app -c android.intent.category.LAUNCHER 1
+adb logcat -b crash -d -v threadtime
+```
+
+Urutan manual (Infinix GT 30 Pro / Android 16):
+1. Fresh install atau upgrade tanpa kehilangan data.
+2. Onboarding → Home Empty.
+3. Catat periode → Home Success.
+4. Beranda ↔ Kalender berulang kali:
+   - indicator aktif bergerak mulus (200ms),
+   - tidak ada layout jump,
+   - label tetap terbaca,
+   - navigasi langsung jalan (tidak menunggu animasi).
+5. Tap Catat: feedback tekan halus, LogEditorSheet terbuka, dock tidak
+   mengganggu.
+6. Buka Log Editor di font normal, 1.3×, 1.5×, dan saat keyboard terbuka:
+   - CTA "Simpan catatan" tetap terjangkau (imePadding),
+   - chips gejala wrap, tidak terpotong.
+7. Settings: tidak ada overlap/trailing terpotong; dark mode; dynamic
+   color tetap OFF secara default.
+8. Insight: selected state companion jelas (rose ring/fill).
+9. Gesture navigation & 3-button: dock spacing benar, tidak menutupi
+   konten.
+10. Force-stop → relaunch; PIN/app lock tetap bekerja.
+11. `adb logcat -b crash -d` kosong.
+12. Merged manifest debug & release tanpa INTERNET.
+
+Catatan perilaku dock (final):
+- Beranda/Kalender text-first (tanpa icon) di mode normal; icon muncul
+  hanya di compact (<360dp).
+- Satu active capsule bergerak (posisi + lebar) — bukan per-item.
+- Label tidak pernah hilang; unselected alpha 0.72.
+- Catat selalu ikon pensil + label; Insight companion + label kecil.
+
 ## P1 Visual Design System — physical validation checklist
 
 ```bash

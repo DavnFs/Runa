@@ -1,5 +1,8 @@
 package id.rona.app.ui.components
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsSelected
@@ -7,6 +10,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.unit.dp
 import id.rona.app.ui.theme.RonaTheme
 import org.junit.Rule
 import org.junit.Test
@@ -117,5 +121,39 @@ class RonaFloatingNavDockTest {
         }
         // If layout overflowed, Compose would throw; merely rendering is enough.
         composeRule.onNodeWithContentDescription("Beranda, tab dipilih").assertExists()
+    }
+
+    @Test
+    fun compact320dpRendersWithoutOverflow() {
+        composeRule.setContent {
+            RonaTheme {
+                Box(
+                    modifier = Modifier.width(320.dp),
+                ) {
+                    RonaFloatingNavDock(
+                        selected = RonaDockDestination.HOME,
+                        onDestinationSelected = {},
+                        onLogAction = {},
+                    )
+                }
+            }
+        }
+        composeRule.onNodeWithContentDescription("Beranda, tab dipilih").assertExists()
+        composeRule.onNodeWithContentDescription("Catat keadaanmu hari ini").assertExists()
+        composeRule.onNodeWithContentDescription("Insight").assertExists()
+    }
+
+    @Test
+    fun insightSelectedSemanticsExposed() {
+        composeRule.setContent {
+            RonaTheme {
+                RonaFloatingNavDock(
+                    selected = RonaDockDestination.INSIGHTS,
+                    onDestinationSelected = {},
+                    onLogAction = {},
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription("Insight, tab dipilih").assertIsSelected()
     }
 }

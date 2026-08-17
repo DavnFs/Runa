@@ -469,3 +469,20 @@ private fun DockLargeFontPreview() {
         )
     }
 }
+
+@Preview(
+    name = "Dock — narrow 320dp dark",
+    showBackground = true,
+    widthDp = 320,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun DockNarrowDarkPreview() {
+    RonaTheme(themeMode = id.rona.app.domain.model.ThemeMode.DARK) {
+        RonaFloatingNavDock(
+            selected = RonaDockDestination.CALENDAR,
+            onDestinationSelected = {},
+            onLogAction = {},
+        )
+    }
+}

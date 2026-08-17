@@ -369,3 +369,38 @@ private fun HomeSuccessDarkPreview() {
         )
     }
 }
+
+@Preview(
+    name = "Home Success — 360dp dark, font 1.3x",
+    showBackground = true,
+    widthDp = 360,
+    fontScale = 1.3f,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun HomeSuccessNarrowDarkLargeFontPreview() {
+    RonaTheme(themeMode = id.rona.app.domain.model.ThemeMode.DARK) {
+        HomeSuccessContent(
+            homeData = HomeData(
+                cycleDay = 12,
+                isPeriodActive = false,
+                prediction = CyclePrediction(
+                    predictedStart = LocalDate.now().plusDays(16),
+                    rangeLow = LocalDate.now().plusDays(14),
+                    rangeHigh = LocalDate.now().plusDays(19),
+                    medianCycleLengthDays = 28,
+                    meanCycleLengthDays = 28.5,
+                    madDays = 1.5,
+                    cycleCountUsed = 4,
+                    confidence = Confidence.MEDIUM,
+                ),
+                totalPeriods = 4,
+                totalLogs = 30,
+            ),
+            onStartPeriod = {},
+            onEndPeriod = {},
+            onLogToday = {},
+            onOpenCalendar = {},
+        )
+    }
+}
