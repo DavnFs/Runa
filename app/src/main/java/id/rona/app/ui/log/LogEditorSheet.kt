@@ -2,31 +2,32 @@ package id.rona.app.ui.log
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,9 +41,13 @@ import id.rona.app.domain.model.FlowLevel
 import id.rona.app.domain.model.Mood
 import id.rona.app.domain.model.Severity
 import id.rona.app.domain.model.SymptomType
+import id.rona.app.ui.components.RonaJournalTextField
+import id.rona.app.ui.components.RonaSection
+import id.rona.app.ui.components.RonaSelectableChip
 import id.rona.app.ui.nlp.NoteAnalysisResultSheet
+import id.rona.app.ui.theme.LocalRonaColors
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun LogEditorSheet(
     date: java.time.LocalDate? = null,
@@ -63,38 +68,119 @@ fun LogEditorSheet(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        Text("Catat hari ini", style = MaterialTheme.typography.headlineSmall)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Bagaimana keadaanmu hari ini?",
+            style = MaterialTheme.typography.headlineSmall,
+        )
 
         if (uiState.isLoading) {
             CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
             return@Column
         }
 
-        FlowSection(
-            selected = uiState.flow,
-            onSelect = viewModel::selectFlow,
-        )
+        // ——— Perasaan tubuh ———
+        RonaSection(title = "Perasaan tubuh") {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FlowLevel.entries.forEach { flow ->
+                    RonaSelectableChip(
+                        label = when (flow) {
+                            FlowLevel.SPOTTING -> "Spotting"
+                            FlowLevel.LIGHT -> "Ringan"
+                            FlowLevel.MEDIUM -> "Sedang"
+                            FlowLevel.HEAVY -> "Banyak"
+                        },
+                        selected = uiState.flow == flow,
+                        onClick = { viewModel.selectFlow(if (uiState.flow == flow) null else flow) },
+                    )
+                }
+            }
+        }
 
-        SymptomSection(
-            selectedSymptoms = uiState.selectedSymptoms,
-            onToggle = viewModel::toggleSymptom,
-            onSeverity = viewModel::setSymptomSeverity,
-        )
+        // ——— Intensitas (gejala + tingkat) ———
+        RonaSection(title = "Intensitas", supporting = "Pilih gejala yang kamu rasakan") {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SymptomType.entries.forEach { symptom ->
+                    val severity = uiState.selectedSymptoms[symptom]
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        RonaSelectableChip(
+                            label = symptomLabel(symptom),
+                            selected = severity != null,
+                            onClick = { viewModel.toggleSymptom(symptom) },
+                        )
+                        if (severity != null) {
+                            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                                Severity.entries.forEachIndexed { index, sev ->
+                                    SegmentedButton(
+                                        selected = severity == sev,
+                                        onClick = { viewModel.setSymptomSeverity(symptom, sev) },
+                                        shape = SegmentedButtonDefaults.itemShape(
+                                            index = index,
+                                            count = Severity.entries.size,
+                                        ),
+                                    ) {
+                                        Text(
+                                            when (sev) {
+                                                Severity.MILD -> "Ringan"
+                                                Severity.MODERATE -> "Sedang"
+                                                Severity.SEVERE -> "Berat"
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-        MoodSection(selected = uiState.mood, onSelect = viewModel::selectMood)
-        EnergySection(selected = uiState.energy, onSelect = viewModel::selectEnergy)
+        // ——— Energi ———
+        RonaSection(title = "Energi") {
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                Energy.entries.forEachIndexed { index, energy ->
+                    SegmentedButton(
+                        selected = uiState.energy == energy,
+                        onClick = { viewModel.selectEnergy(if (uiState.energy == energy) null else energy) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = Energy.entries.size),
+                    ) {
+                        Text(energyLabel(energy))
+                    }
+                }
+            }
+        }
 
-        OutlinedTextField(
-            value = uiState.note,
-            onValueChange = viewModel::setNote,
-            label = { Text("Catatan pribadi") },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 3,
-        )
+        // ——— Mood ———
+        RonaSection(title = "Mood") {
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                Mood.entries.forEachIndexed { index, mood ->
+                    SegmentedButton(
+                        selected = uiState.mood == mood,
+                        onClick = { viewModel.selectMood(if (uiState.mood == mood) null else mood) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = Mood.entries.size),
+                    ) {
+                        Text(moodLabel(mood))
+                    }
+                }
+            }
+        }
 
+        // ——— Catatan pribadi ———
+        RonaSection(title = "Catatan pribadi") {
+            RonaJournalTextField(
+                value = uiState.note,
+                onValueChange = viewModel::setNote,
+                minLines = 4,
+            )
+        }
+
+        // ——— NLP analysis ———
         OutlinedButton(
             onClick = viewModel::runAnalysis,
             enabled = uiState.note.isNotBlank() && !uiState.isAnalyzing,
@@ -102,11 +188,11 @@ fun LogEditorSheet(
         ) {
             if (uiState.isAnalyzing) {
                 CircularProgressIndicator(Modifier.height(20.dp), strokeWidth = 2.dp)
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.width(8.dp))
                 Text("Menganalisis…")
             } else {
                 Icon(Icons.Rounded.AutoAwesome, contentDescription = null, modifier = Modifier.height(18.dp))
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.width(8.dp))
                 Text("Analisis catatan")
             }
         }
@@ -116,7 +202,21 @@ fun LogEditorSheet(
             Text(errorMessage, color = MaterialTheme.colorScheme.error)
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Spacer(Modifier.height(4.dp))
+    }
+
+    // ————— Sticky bottom CTA —————
+    val colors = LocalRonaColors.current
+    Surface(
+        color = colors.pageCanvas,
+        shadowElevation = 8.dp,
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             OutlinedButton(
                 onClick = viewModel::delete,
                 modifier = Modifier.weight(1f),
@@ -128,7 +228,7 @@ fun LogEditorSheet(
                 enabled = !uiState.isSaving,
                 modifier = Modifier.weight(1f),
             ) {
-                Text(if (uiState.isSaving) "Menyimpan…" else "Simpan")
+                Text(if (uiState.isSaving) "Menyimpan…" else "Simpan catatan")
             }
         }
     }
@@ -146,116 +246,6 @@ fun LogEditorSheet(
                 onDismiss = viewModel::dismissAnalysisResult,
                 onAcknowledgeSafety = viewModel::acknowledgeSafetyAlerts,
             )
-        }
-    }
-}
-
-@Composable
-private fun FlowSection(
-    selected: FlowLevel?,
-    onSelect: (FlowLevel?) -> Unit,
-) {
-    Column {
-        Text("Flow", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FlowLevel.entries.forEach { flow ->
-                FilterChip(
-                    selected = selected == flow,
-                    onClick = { onSelect(if (selected == flow) null else flow) },
-                    label = {
-                        Text(
-                            when (flow) {
-                                FlowLevel.SPOTTING -> "Spotting"
-                                FlowLevel.LIGHT -> "Ringan"
-                                FlowLevel.MEDIUM -> "Sedang"
-                                FlowLevel.HEAVY -> "Banyak"
-                            }
-                        )
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SymptomSection(
-    selectedSymptoms: Map<SymptomType, Severity>,
-    onToggle: (SymptomType) -> Unit,
-    onSeverity: (SymptomType, Severity) -> Unit,
-) {
-    Column {
-        Text("Gejala", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            SymptomType.entries.forEach { symptom ->
-                val severity = selectedSymptoms[symptom]
-                Column {
-                    FilterChip(
-                        selected = severity != null,
-                        onClick = { onToggle(symptom) },
-                        label = { Text(symptomLabel(symptom)) },
-                    )
-                    if (severity != null) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Severity.entries.forEach { sev ->
-                                FilterChip(
-                                    selected = severity == sev,
-                                    onClick = { onSeverity(symptom, sev) },
-                                    label = {
-                                        Text(
-                                            when (sev) {
-                                                Severity.MILD -> "Ringan"
-                                                Severity.MODERATE -> "Sedang"
-                                                Severity.SEVERE -> "Berat"
-                                            }
-                                        )
-                                    },
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MoodSection(selected: Mood?, onSelect: (Mood?) -> Unit) {
-    Column {
-        Text("Mood", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            Mood.entries.forEachIndexed { index, mood ->
-                SegmentedButton(
-                    selected = selected == mood,
-                    onClick = { onSelect(if (selected == mood) null else mood) },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = Mood.entries.size),
-                ) {
-                    Text(moodLabel(mood))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun EnergySection(selected: Energy?, onSelect: (Energy?) -> Unit) {
-    Column {
-        Text("Energi", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            Energy.entries.forEachIndexed { index, energy ->
-                SegmentedButton(
-                    selected = selected == energy,
-                    onClick = { onSelect(if (selected == energy) null else energy) },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = Energy.entries.size),
-                ) {
-                    Text(energyLabel(energy))
-                }
-            }
         }
     }
 }
