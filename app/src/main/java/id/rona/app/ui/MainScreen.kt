@@ -9,8 +9,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import id.rona.app.ui.calendar.CalendarScreen
-import id.rona.app.ui.components.FloatingPillNavBar
-import id.rona.app.ui.components.RonaTab
+import id.rona.app.ui.components.RonaDockDestination
+import id.rona.app.ui.components.RonaFloatingNavDock
 import id.rona.app.ui.home.HomeScreen
 import id.rona.app.ui.insights.InsightsScreen
 
@@ -19,27 +19,28 @@ fun MainScreen(
     onLogToday: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    var selectedTab by rememberSaveable { mutableStateOf(RonaTab.HOME) }
+    var selectedTab by rememberSaveable { mutableStateOf(RonaDockDestination.HOME) }
 
     Scaffold(
+        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background,
         bottomBar = {
-            FloatingPillNavBar(
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it },
+            RonaFloatingNavDock(
+                selected = selectedTab,
+                onDestinationSelected = { selectedTab = it },
                 onLogAction = onLogToday,
             )
         },
     ) { innerPadding ->
         val contentModifier = Modifier.padding(innerPadding)
         when (selectedTab) {
-            RonaTab.HOME -> HomeScreen(
+            RonaDockDestination.HOME -> HomeScreen(
                 onLogToday = onLogToday,
-                onOpenCalendar = { selectedTab = RonaTab.CALENDAR },
+                onOpenCalendar = { selectedTab = RonaDockDestination.CALENDAR },
                 onOpenSettings = onOpenSettings,
                 modifier = contentModifier,
             )
-            RonaTab.CALENDAR -> CalendarScreen(modifier = contentModifier)
-            RonaTab.INSIGHTS -> InsightsScreen(modifier = contentModifier)
+            RonaDockDestination.CALENDAR -> CalendarScreen(modifier = contentModifier)
+            RonaDockDestination.INSIGHTS -> InsightsScreen(modifier = contentModifier)
         }
     }
 }
