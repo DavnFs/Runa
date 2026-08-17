@@ -112,7 +112,6 @@ class RonaFloatingNavDockTest {
                     selected = RonaDockDestination.HOME,
                     onDestinationSelected = {},
                     onLogAction = {},
-                    showLabels = false,
                 )
             }
         }
