@@ -3,66 +3,108 @@ package id.rona.app.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.rona.app.data.db.dao.DailyLogDao
 import id.rona.app.data.db.dao.PeriodRecordDao
 import id.rona.app.data.db.entity.PeriodRecordEntity
 import id.rona.app.domain.engine.CycleEngine
 import id.rona.app.domain.engine.CyclePrediction
+import id.rona.app.util.PrivacyLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
-data class HomeUiState(
-    val isLoading: Boolean = true,
+/** Data required by the Beranda dashboard once it has loaded. */
+data class HomeData(
     val today: LocalDate = LocalDate.now(),
     val cycleDay: Int? = null,
     val isPeriodActive: Boolean = false,
-    val ongoingPeriod: PeriodRecordEntity? = null,
     val prediction: CyclePrediction? = null,
     val totalPeriods: Int = 0,
-    val error: String? = null,
+    val totalLogs: Int = 0,
 )
+
+/**
+ * Explicit dashboard states. There is NO indefinite loading: after the first
+ * upstream emission the UI is always in exactly one of these states.
+ * Lock/onboarding gating lives outside this model by design.
+ */
+sealed interface HomeUiState {
+    data object Loading : HomeUiState
+
+    data class Success(val homeData: HomeData) : HomeUiState
+
+    /** No period records yet — onboarding done, tracking not started. */
+    data object Empty : HomeUiState
+
+    data class Error(
+        val userMessage: String,
+        val isRetryable: Boolean,
+    ) : HomeUiState
+}
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val periodRecordDao: PeriodRecordDao,
+    private val dailyLogDao: DailyLogDao,
 ) : ViewModel() {
 
-    private val _isLoading = MutableStateFlow(true)
-    private val _error = MutableStateFlow<String?>(null)
+    private val refreshTick = MutableStateFlow(0)
 
-    private val data = periodRecordDao.observeAll()
-        .map { records ->
-            val prediction = CycleEngine.predict(
-                records.map { LocalDate.ofEpochDay(it.startEpochDay) }
-            )
-            HomeUiState(
-                isLoading = false,
-                cycleDay = CycleEngine.cycleDayFor(
-                    LocalDate.now(),
-                    records.map { LocalDate.ofEpochDay(it.startEpochDay) },
-                ),
-                isPeriodActive = records.any { it.endEpochDay == null },
-                ongoingPeriod = records.lastOrNull { it.endEpochDay == null },
-                prediction = prediction,
-                totalPeriods = records.size,
+    val uiState: StateFlow<HomeUiState> = refreshTick
+        .flatMapLatest { tick ->
+            combine(
+                periodRecordDao.observeAll(),
+                dailyLogDao.observeAll(),
+            ) { periods, logs ->
+                periods.toHomeState(logs.size)
+            }
+                .onStart { if (tick > 0) emit(HomeUiState.Loading) }
+        }
+        .catch { e ->
+            if (e is CancellationException) throw e
+            // Sanitized: exception class only. No data, no dates, no notes.
+            PrivacyLogger.e(TAG) { "home flow failed: ${e.javaClass.simpleName}" }
+            emit(
+                HomeUiState.Error(
+                    userMessage = "Datamu tidak bisa dimuat sekarang.",
+                    isRetryable = true,
+                )
             )
         }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = HomeUiState.Loading,
+        )
 
-    val uiState: StateFlow<HomeUiState> = combine(data, _isLoading, _error) { state, loading, error ->
-        state.copy(isLoading = loading || state.isLoading, error = error)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = HomeUiState(),
-    )
+    private fun List<PeriodRecordEntity>.toHomeState(logCount: Int): HomeUiState {
+        if (isEmpty()) return HomeUiState.Empty
+
+        val starts = map { LocalDate.ofEpochDay(it.startEpochDay) }
+        return HomeUiState.Success(
+            HomeData(
+                cycleDay = CycleEngine.cycleDayFor(LocalDate.now(), starts),
+                isPeriodActive = any { it.endEpochDay == null },
+                prediction = CycleEngine.predict(starts),
+                totalPeriods = size,
+                totalLogs = logCount,
+            )
+        )
+    }
+
+    fun retry() {
+        refreshTick.value += 1
+    }
 
     fun startPeriod(date: LocalDate = LocalDate.now()) {
         viewModelScope.launch {
@@ -90,5 +132,9 @@ class HomeViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    companion object {
+        private const val TAG = "HomeViewModel"
     }
 }
