@@ -31,7 +31,7 @@ fun PrivacyPolicyScreen(
         Text("Kebijakan privasi", style = MaterialTheme.typography.headlineSmall)
 
         Text(
-            "rona dirancang dengan satu prinsip: data kesehatanmu hanya milikmu.",
+            "Runa dirancang dengan satu prinsip: data kesehatanmu hanya milikmu.",
             style = MaterialTheme.typography.bodyLarge,
         )
 
@@ -80,11 +80,11 @@ fun AboutScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("Tentang rona", style = MaterialTheme.typography.headlineSmall)
+        Text("Tentang Runa", style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(16.dp))
         androidx.compose.foundation.Image(
             painter = androidx.compose.ui.res.painterResource(id.rona.app.R.drawable.img_logo_full),
-            contentDescription = "Logo rona — Menstrual cycle & wellness tracker",
+            contentDescription = "Logo Runa — Menstrual cycle & wellness tracker",
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),

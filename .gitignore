@@ -1,18 +1,103 @@
-# Gradle
+# ==============================================================================
+# Rona — Privacy-First Android .gitignore
+# Prevents accidental commits of secrets, keystores, local SQLite databases,
+# dumps, logs, compiler caches, and private user health data.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Kotlin / Gradle / Build Artifacts
+# ------------------------------------------------------------------------------
 .gradle/
+.kotlin/
 build/
 **/build/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.hprof
 
-# Android Studio / IntelliJ
+# ------------------------------------------------------------------------------
+# Android Studio / IntelliJ / IDEs
+# ------------------------------------------------------------------------------
 .idea/
 *.iml
+*.ipr
+*.iws
+.vscode/
+.fleet/
 local.properties
 
-# OS
-.DS_Store
+# ------------------------------------------------------------------------------
+# Sensitive Signing Keys, Keystores & Certificate Bundles (CRITICAL)
+# ------------------------------------------------------------------------------
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+*.pk8
+*.bks
+keystore.properties
+signing.properties
 
-# Keep Room schema dumps (needed for migration tests)
+# ------------------------------------------------------------------------------
+# Secrets, Tokens, API Keys & Environment Configs (CRITICAL)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+secrets.xml
+secrets.properties
+google-services.json
+figma_*.json
+figma_*.png
+*.token
+*.secret
+*.keyfile
+
+# ------------------------------------------------------------------------------
+# Local Databases, SQLCipher Dumps, Backups & Test Artifacts (CRITICAL)
+# ------------------------------------------------------------------------------
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlcipher
+*.rona
+*.ronabackup
+*.backup
+*.dump
+dumps/
+scratch/
+.tempmediaStorage/
+temp/
+tmp/
+
+# ------------------------------------------------------------------------------
+# AI Agents, Command Tools & System Generated Logs
+# ------------------------------------------------------------------------------
+.commandcode/
+.system_generated/
+.gemini/
+*.log
+
+# ------------------------------------------------------------------------------
+# OS / Desktop Metadata
+# ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Nn]onlinear/
+
+# ------------------------------------------------------------------------------
+# Whitelisted Preserved Files
+# ------------------------------------------------------------------------------
+# Room schema dumps are required for database migration validation tests
 !app/schemas/
 
-# Command Code tool-managed files
-.commandcode/
+# Gradle wrapper binary
+!gradle/wrapper/gradle-wrapper.jar

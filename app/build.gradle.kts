@@ -61,6 +61,12 @@ android {
     }
 }
 
+tasks.withType<Test>().configureEach {
+    if (name == "testReleaseUnitTest") {
+        exclude("id/rona/app/ui/**")
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)

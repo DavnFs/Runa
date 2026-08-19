@@ -30,7 +30,14 @@ fun RonaNavHost() {
     val navController = rememberNavController()
     var showLogSheet by rememberSaveable { mutableStateOf(false) }
 
-    NavHost(navController = navController, startDestination = Onboarding) {
+    NavHost(
+        navController = navController,
+        startDestination = Onboarding,
+        enterTransition = { id.rona.app.ui.theme.RonaMotion.NavPushEnter },
+        exitTransition = { id.rona.app.ui.theme.RonaMotion.NavPushExit },
+        popEnterTransition = { id.rona.app.ui.theme.RonaMotion.NavPopEnter },
+        popExitTransition = { id.rona.app.ui.theme.RonaMotion.NavPopExit },
+    ) {
         composable<Onboarding> {
             OnboardingScreen(onFinished = {
                 navController.navigate(Main) {
@@ -53,6 +60,7 @@ fun RonaNavHost() {
                 onDelete = { navController.navigate(DataDeletion) },
                 onPrivacyPolicy = { navController.navigate(PrivacyPolicy) },
                 onAbout = { navController.navigate(About) },
+                onBack = { navController.popBackStack() },
             )
         }
         composable<SecuritySettings> { SecuritySettingsScreen(onBack = { navController.popBackStack() }) }

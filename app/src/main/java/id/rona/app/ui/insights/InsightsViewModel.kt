@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import javax.inject.Inject
 
+import id.rona.app.data.repository.PeriodRecordRepository
+import id.rona.app.domain.model.PeriodRecord
+
 data class InsightsUiState(
     val isLoading: Boolean = true,
     val avgCycleLength: Double? = null,
@@ -34,23 +37,23 @@ data class InsightsUiState(
 
 @HiltViewModel
 class InsightsViewModel @Inject constructor(
-    private val periodRecordDao: PeriodRecordDao,
+    private val periodRecordRepository: PeriodRecordRepository,
     private val dailyLogDao: DailyLogDao,
     private val symptomLogDao: SymptomLogDao,
 ) : ViewModel() {
 
     val uiState: StateFlow<InsightsUiState> = combine(
-        periodRecordDao.observeAll(),
+        periodRecordRepository.observeAllPeriods(),
         dailyLogDao.observeAll(),
         symptomLogDao.observeAll(),
     ) { periods, logs, symptoms ->
-        val starts = periods.map { LocalDate.ofEpochDay(it.startEpochDay) }.distinct().sorted()
+        val starts = periods.map { it.startDate }.distinct().sorted()
         val cycleLengths = CycleEngine.recentValidCycleLengths(starts)
         val median = cycleLengths.takeIf { it.isNotEmpty() }?.let { CycleEngine.median(it) }
         val mad = median?.let { CycleEngine.medianAbsoluteDeviation(cycleLengths, it) }
 
         val durations = periods.map { period ->
-            PeriodSpan(period.startEpochDay, period.endEpochDay)
+            PeriodSpan(period.startDate.toEpochDay(), period.endDate?.toEpochDay())
         }
 
         val symptomCounts = symptoms

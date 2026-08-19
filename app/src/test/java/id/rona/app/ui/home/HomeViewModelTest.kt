@@ -23,6 +23,8 @@ import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import java.time.LocalDate
 
+import id.rona.app.data.repository.PeriodRecordRepository
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
@@ -32,10 +34,21 @@ class HomeViewModelTest {
     private fun vm(
         periods: Flow<List<PeriodRecordEntity>>,
         logs: Flow<List<DailyLogEntity>>,
-    ): HomeViewModel = HomeViewModel(
-        periodRecordDao = FakePeriodDao(periods),
-        dailyLogDao = FakeLogDao(logs),
-    )
+    ): HomeViewModel {
+        val fakePeriodDao = FakePeriodDao(periods)
+        val fakePredictionDao = FakePredictionDao()
+        val repository = PeriodRecordRepository(
+            transactionRunner = object : id.rona.app.data.db.TransactionRunner {
+                override suspend fun <T> invoke(block: suspend () -> T): T = block()
+            },
+            periodRecordDao = fakePeriodDao,
+            cyclePredictionDao = fakePredictionDao,
+        )
+        return HomeViewModel(
+            periodRecordRepository = repository,
+            dailyLogDao = FakeLogDao(logs),
+        )
+    }
 
     private fun period(start: LocalDate, end: LocalDate? = null) = PeriodRecordEntity(
         startEpochDay = start.toEpochDay(),
@@ -169,6 +182,14 @@ class HomeViewModelTest {
         override suspend fun count(): Int = 0
         override suspend fun upsert(log: DailyLogEntity): Long = 0
         override suspend fun deleteById(id: Long) = Unit
+        override suspend fun deleteAll() = Unit
+    }
+
+    private class FakePredictionDao : id.rona.app.data.db.dao.CyclePredictionDao {
+        override fun observeLatest(): Flow<id.rona.app.data.db.entity.CyclePredictionEntity?> = kotlinx.coroutines.flow.flowOf(null)
+        override suspend fun getLatest(): id.rona.app.data.db.entity.CyclePredictionEntity? = null
+        override suspend fun upsert(prediction: id.rona.app.data.db.entity.CyclePredictionEntity): Long = 1L
+        override suspend fun trimTo(keep: Int) = Unit
         override suspend fun deleteAll() = Unit
     }
 }

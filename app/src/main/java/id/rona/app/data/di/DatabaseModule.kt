@@ -51,4 +51,9 @@ object DatabaseModule {
 
     @Provides
     fun provideNlpSuggestionDao(db: RonaDatabase): NlpSuggestionDao = db.nlpSuggestionDao()
+
+    @Provides
+    @Singleton
+    fun provideTransactionRunner(db: RonaDatabase): id.rona.app.data.db.TransactionRunner =
+        id.rona.app.data.db.RoomTransactionRunner(db)
 }

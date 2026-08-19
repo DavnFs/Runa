@@ -40,18 +40,18 @@ object RonaNotifier {
 
     fun showDailyLogReminder(context: Context, privacyMode: PrivacyMode) {
         val (title, text) = when (privacyMode) {
-            PrivacyMode.GENERIC -> "rona" to "Satu menit untuk mencatat hari ini."
-            PrivacyMode.TITLE_ONLY -> "rona" to null
-            PrivacyMode.FULL -> "rona" to "Jangan lupa mencatat hari ini."
+            PrivacyMode.GENERIC -> "Runa" to "Satu menit untuk mencatat hari ini."
+            PrivacyMode.TITLE_ONLY -> "Runa" to null
+            PrivacyMode.FULL -> "Runa" to "Jangan lupa mencatat hari ini."
         }
         notify(context, CHANNEL_DAILY_LOG, 2, title, text)
     }
 
     fun showPeriodReminder(context: Context, privacyMode: PrivacyMode, daysUntil: Int) {
         val (title, text) = when (privacyMode) {
-            PrivacyMode.GENERIC -> "rona" to "Ada pengingat kecil untukmu."
-            PrivacyMode.TITLE_ONLY -> "rona" to null
-            PrivacyMode.FULL -> "rona" to when (daysUntil) {
+            PrivacyMode.GENERIC -> "Runa" to "Ada pengingat kecil untukmu."
+            PrivacyMode.TITLE_ONLY -> "Runa" to null
+            PrivacyMode.FULL -> "Runa" to when (daysUntil) {
                 0 -> "Perkiraan periode mulai hari ini."
                 1 -> "Perkiraan periode mulai besok."
                 else -> "Perkiraan periode mulai dalam $daysUntil hari."

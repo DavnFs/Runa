@@ -71,13 +71,13 @@ fun LockGateScreen(
     ) {
         Image(
             painter = painterResource(R.drawable.ic_logo_symbol),
-            contentDescription = "Logo rona",
+            contentDescription = "Logo Runa",
             modifier = Modifier.size(72.dp),
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "rona",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "RUNA",
+            style = id.rona.app.ui.theme.RonaWordmarkStyle,
             color = MaterialTheme.colorScheme.onBackground,
         )
         Spacer(Modifier.height(8.dp))

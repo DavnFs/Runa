@@ -6,6 +6,8 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,9 +18,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoGraph
+import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,12 +37,14 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -57,18 +61,12 @@ import id.rona.app.ui.theme.RonaPillShape
 import id.rona.app.ui.theme.RonaTheme
 
 /**
- * Rona floating pill navigation dock — FINAL: icon-only, 3 destinations.
+ * Rona floating pill navigation dock — Glassmorphic iOS-style, icon-only, 3 destinations.
  *
- *   ┌────────────────────────────┐
- *   │       ◉      □      ◌       │
- *   └────────────────────────────┘
- *
- * - Beranda / Kalender / Insight: pure navigation. NO visible labels,
- *   NO Catat action (the primary CTA lives on Beranda), NO companion button.
- * - A single active capsule moves between icons (position + width),
- *   200ms FastOutSlowIn; icon color + subtle scale animate too.
- * - Labels are available via long-press tooltip, TalkBack contentDescription,
- *   and the selected semantic state.
+ * Visual layout:
+ * - Translucent glass surface (bright & luminous in light mode, deep & frosted in dark mode).
+ * - Specular border highlight simulating iOS glass reflection.
+ * - Active pill indicator moving between icons (position + width), 200ms FastOutSlowIn.
  */
 enum class RonaDockDestination(val label: String) {
     HOME("Beranda"),
@@ -78,11 +76,11 @@ enum class RonaDockDestination(val label: String) {
 
 /** Dock dimension tokens (semantic, single source of truth). */
 object RonaDockTokens {
-    val Height = 64.dp
-    val CornerRadius = 32.dp
+    val Height = 60.dp
+    val CornerRadius = 30.dp
     val HorizontalMargin = 20.dp
     val BottomOffset = 12.dp
-    val MinTouchTarget = 48.dp
+    val MinTouchTarget = 46.dp
     val ItemSpacing = 4.dp
 
     /** Clearance reserved below page content so the dock never covers it. */
@@ -105,17 +103,31 @@ fun RonaFloatingNavDock(
                 horizontal = RonaDockTokens.HorizontalMargin,
                 vertical = RonaDockTokens.BottomOffset,
             ),
+        contentAlignment = Alignment.Center,
     ) {
+        // Outer glassmorphic pill container
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 340.dp),
+                .width(236.dp)
+                .shadow(
+                    elevation = 12.dp,
+                    shape = RonaPillShape,
+                    ambientColor = colors.inkPrimary.copy(alpha = 0.12f),
+                    spotColor = colors.inkPrimary.copy(alpha = 0.18f),
+                ),
             shape = RonaPillShape,
             color = colors.dockSurface,
             contentColor = colors.dockContent,
-            tonalElevation = 4.dp,
-            shadowElevation = 8.dp,
-            border = BorderStroke(1.dp, colors.dockBorder),
+            border = BorderStroke(
+                width = 1.dp,
+                brush = Brush.verticalGradient(
+                    listOf(
+                        Color(0x99FFFFFF),
+                        colors.dockBorder,
+                        Color(0x22000000),
+                    )
+                ),
+            ),
         ) {
             DockPillContent(
                 selected = selected,
@@ -162,7 +174,8 @@ private fun DockPillContent(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(RonaDockTokens.Height),
+            .height(RonaDockTokens.Height)
+            .padding(horizontal = 6.dp),
         contentAlignment = Alignment.Center,
     ) {
         // ————— Single moving active capsule —————
@@ -172,7 +185,12 @@ private fun DockPillContent(
                     .align(Alignment.CenterStart)
                     .offset(x = indicatorOffset)
                     .width(indicatorWidth)
-                    .height(RonaDockTokens.MinTouchTarget),
+                    .height(RonaDockTokens.MinTouchTarget)
+                    .shadow(
+                        elevation = 4.dp,
+                        shape = RonaPillShape,
+                        spotColor = colors.dockSelectedContainer.copy(alpha = 0.4f),
+                    ),
                 shape = RonaPillShape,
                 color = colors.dockSelectedContainer,
             ) {}
@@ -211,7 +229,6 @@ private fun DockIconItem(
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalRonaColors.current
-    val tooltipState = rememberTooltipState()
 
     val iconColor by animateColorAsState(
         targetValue = if (selected) colors.dockContent else colors.dockInactiveContent,
@@ -224,8 +241,6 @@ private fun DockIconItem(
         label = "dockIconScale",
     )
 
-    // Outer Surface carries the click + semantics; TooltipBox wraps only the
-    // visual icon so semantics stay merged and TalkBack/long-press both work.
     Surface(
         onClick = onClick,
         shape = RonaPillShape,
@@ -234,7 +249,7 @@ private fun DockIconItem(
         modifier = modifier
             .height(RonaDockTokens.MinTouchTarget)
             .onGloballyPositioned { coords ->
-                onMeasured(coords.positionInWindow().x.roundToInt(), coords.size.width)
+                onMeasured(coords.positionInParent().x.roundToInt(), coords.size.width)
             }
             .semantics {
                 this.selected = selected
@@ -281,7 +296,7 @@ private fun DockIconItem(
 private fun RonaDockDestination.icon(): ImageVector = when (this) {
     RonaDockDestination.HOME -> Icons.Rounded.Home
     RonaDockDestination.CALENDAR -> Icons.Rounded.CalendarMonth
-    RonaDockDestination.INSIGHTS -> Icons.Rounded.AutoGraph
+    RonaDockDestination.INSIGHTS -> Icons.Rounded.BarChart
 }
 
 // ───────────────────────── Previews ─────────────────────────
@@ -330,6 +345,38 @@ private fun DockBerandaDarkPreview() {
     RonaTheme(themeMode = ThemeMode.DARK) {
         RonaFloatingNavDock(
             selected = RonaDockDestination.HOME,
+            onDestinationSelected = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Dock — Kalender selected, dark",
+    showBackground = true,
+    widthDp = 390,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun DockKalenderDarkPreview() {
+    RonaTheme(themeMode = ThemeMode.DARK) {
+        RonaFloatingNavDock(
+            selected = RonaDockDestination.CALENDAR,
+            onDestinationSelected = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Dock — Insight selected, dark",
+    showBackground = true,
+    widthDp = 390,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun DockInsightDarkPreview() {
+    RonaTheme(themeMode = ThemeMode.DARK) {
+        RonaFloatingNavDock(
+            selected = RonaDockDestination.INSIGHTS,
             onDestinationSelected = {},
         )
     }

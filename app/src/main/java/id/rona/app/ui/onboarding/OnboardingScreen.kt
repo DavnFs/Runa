@@ -101,7 +101,7 @@ private fun WelcomeStep(onNext: () -> Unit) {
     ) {
         Icon(Icons.Rounded.Shield, contentDescription = null, modifier = Modifier.height(56.dp), tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(24.dp))
-        Text("Selamat datang di rona", style = MaterialTheme.typography.headlineMedium)
+        Text("Selamat datang di Runa", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(16.dp))
         Text(
             "Semua data tinggal di ponselmu.",
@@ -133,7 +133,7 @@ private fun LockSetupStep(
     ) {
         Icon(Icons.Rounded.Lock, contentDescription = null, modifier = Modifier.height(56.dp), tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(24.dp))
-        Text("Kunci rona", style = MaterialTheme.typography.headlineMedium)
+        Text("Kunci Runa", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(16.dp))
         Text(
             "Lindungi catatan pribadimu dengan PIN 4–6 digit. Kamu bisa mengaktifkan " +
@@ -257,7 +257,7 @@ private fun CycleLengthStep(
         Text("Berapa rata-rata panjang siklusmu?", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(16.dp))
         Text(
-            "Tidak tahu? Tidak masalah. rona akan menghitungnya setelah beberapa siklus tercatat.",
+            "Tidak tahu? Tidak masalah. Runa akan menghitungnya setelah beberapa siklus tercatat.",
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(32.dp))

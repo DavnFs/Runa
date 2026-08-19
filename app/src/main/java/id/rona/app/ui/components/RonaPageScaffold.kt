@@ -20,24 +20,22 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import id.rona.app.ui.theme.LocalRonaColors
 
+import id.rona.app.ui.theme.ronaDynamicDockClearance
+
 /**
- * Standard Rona page shell: warm canvas background, consistent horizontal
+ * Standard Runa page shell: warm canvas background, consistent horizontal
  * padding, and correct insets.
  *
  * - Top: safeDrawing (status bar).
- * - Bottom: [dockClearance] reserves space for the floating dock, then
- *   navigation bars inset is applied ONCE (dock itself also applies
- *   navigationBarsPadding, so content must NOT add it again).
+ * - Bottom: [dockClearance] dynamically reserves space for the floating dock,
+ *   including bottom margin, navigation bars inset, and safety scroll padding.
  * - IME: when [imeAware] is true, imePadding() is applied so editable
  *   forms stay reachable above the keyboard.
- *
- * [dockClearance] defaults to [RonaDockTokens.ContentClearance] so the dock
- * never covers primary content.
  */
 @Composable
 fun RonaPageScaffold(
     modifier: Modifier = Modifier,
-    dockClearance: Dp = RonaDockTokens.ContentClearance,
+    dockClearance: Dp = ronaDynamicDockClearance(),
     imeAware: Boolean = false,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     content: @Composable ColumnScope.() -> Unit,

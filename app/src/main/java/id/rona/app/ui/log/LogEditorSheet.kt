@@ -15,11 +15,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,7 +40,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rona.app.domain.model.Energy
@@ -69,6 +73,9 @@ fun LogEditorSheet(
         if (uiState.saved) onDismiss()
     }
 
+    val effectiveDate = date ?: java.time.LocalDate.now()
+    val dateFormatted = effectiveDate.format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d MMMM", java.util.Locale("id", "ID")))
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -76,11 +83,44 @@ fun LogEditorSheet(
             .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "Bagaimana keadaanmu hari ini?",
-            style = MaterialTheme.typography.headlineSmall,
-        )
+        // Sheet Header: Date + Title + Close Button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
+                Text(
+                    text = dateFormatted,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                )
+                Text(
+                    text = "Bagaimana keadaanmu hari ini?",
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+                )
+            }
+
+            androidx.compose.material3.IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Rounded.Close,
+                    contentDescription = "Tutup",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
 
         if (uiState.isLoading) {
             CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
@@ -224,22 +264,20 @@ fun LogEditorSheet(
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
+                .padding(horizontal = 24.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedButton(
+            id.rona.app.ui.components.RonaSecondaryButton(
+                text = "Hapus",
                 onClick = viewModel::delete,
                 modifier = Modifier.weight(1f),
-            ) {
-                Text("Hapus")
-            }
-            Button(
+            )
+            id.rona.app.ui.components.RonaPrimaryButton(
+                text = if (uiState.isSaving) "Menyimpan…" else "Simpan catatan",
                 onClick = viewModel::save,
                 enabled = !uiState.isSaving,
                 modifier = Modifier.weight(1f),
-            ) {
-                Text(if (uiState.isSaving) "Menyimpan…" else "Simpan catatan")
-            }
+            )
         }
     }
 

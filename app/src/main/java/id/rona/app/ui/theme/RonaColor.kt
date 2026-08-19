@@ -13,30 +13,30 @@ import androidx.compose.ui.graphics.Color
 // ───────────────────────── Light ─────────────────────────
 private val Light = object {
     // Canvas & surfaces
-    val pageCanvas = Color(0xFFFFFBF8)
+    val pageCanvas = Color(0xFFFFFFFF)
     val surface = Color(0xFFFFFFFF)
-    val surfaceSoft = Color(0xFFFBF3F4)
+    val surfaceSoft = Color(0xFFFAF1F4)
     val elevatedSurface = Color(0xFFFFFFFF)
     val dividerSubtle = Color(0x1F2D292B)
 
     // Ink (text)
-    val inkPrimary = Color(0xFF2D292B)
+    val inkPrimary = Color(0xFF1E1B1C)
     val inkSecondary = Color(0xFF746D70)
     val inkTertiary = Color(0xFF958A8E)
 
     // Cycle (rose)
-    val cyclePrimary = Color(0xFFA95D70)
+    val cyclePrimary = Color(0xFF8C4558)
     val onCyclePrimary = Color(0xFFFFFFFF)
     val cycleContainer = Color(0xFFF7E7EA)
-    val onCycleContainer = Color(0xFF4A2A33)
+    val onCycleContainer = Color(0xFF1E1B1C)
 
     // Plum
-    val plumAccent = Color(0xFF72546E)
+    val plumAccent = Color(0xFF73556F)
     val plumContainer = Color(0xFFEEE5F0)
     val onPlumContainer = Color(0xFF3A2C3E)
 
     // Sage (wellness)
-    val sageAccent = Color(0xFF617860)
+    val sageAccent = Color(0xFF5F755E)
     val sageContainer = Color(0xFFE5EFE3)
     val onSageContainer = Color(0xFF243424)
 
@@ -46,47 +46,47 @@ private val Light = object {
     val onAmberContainer = Color(0xFF4A3115)
 
     // Status
-    val error = Color(0xFFB3261E)
+    val error = Color(0xFFBA1A1A)
     val onError = Color(0xFFFFFFFF)
-    val errorContainer = Color(0xFFFCE8E6)
-    val onErrorContainer = Color(0xFF5D1110)
+    val errorContainer = Color(0xFFFFDAD6)
+    val onErrorContainer = Color(0xFFBA1A1A)
     val warningContainer = Color(0xFFF8E9D8)
 
     // Privacy / dock
-    val privacySurface = Color(0xFFF4EDEF)
-    val dockSurface = Color(0xFF25202A)
-    val dockContent = Color(0xFFF6EFF1)
-    val dockInactiveContent = Color(0xFFB9AEB4)
-    val dockSelectedContainer = Color(0xFFA95D70)
+    val privacySurface = Color(0xFFF7E7EA)
+    val dockSurface = Color(0xE6FFF7F9)
+    val dockContent = Color(0xFFFFFFFF)
+    val dockInactiveContent = Color(0xFF1E1B1C)
+    val dockSelectedContainer = Color(0xFF8C4558)
     val onDockSelectedContainer = Color(0xFFFFFFFF)
-    val dockBorder = Color(0x33FFFFFF)
+    val dockBorder = Color(0x66FFFFFF)
 
     // Chart / support
-    val supportAccent = Color(0xFF72546E)
+    val supportAccent = Color(0xFFA95D70)
 }
 
 // ───────────────────────── Dark ─────────────────────────
 private val Dark = object {
-    val pageCanvas = Color(0xFF171315)
-    val surface = Color(0xFF211C1F)
-    val surfaceSoft = Color(0xFF2B2326)
-    val elevatedSurface = Color(0xFF2B2326)
+    val pageCanvas = Color(0xFF191316)
+    val surface = Color(0xFF231B20)
+    val surfaceSoft = Color(0xFF2E2328)
+    val elevatedSurface = Color(0xFF2E2328)
     val dividerSubtle = Color(0x33F6EFF1)
 
     val inkPrimary = Color(0xFFF6EFF1)
     val inkSecondary = Color(0xFFD2C4C8)
     val inkTertiary = Color(0xFFAD9EA3)
 
-    val cyclePrimary = Color(0xFFF0B5C5)
-    val onCyclePrimary = Color(0xFF4A2A33)
-    val cycleContainer = Color(0xFF472B34)
-    val onCycleContainer = Color(0xFFF6E3E8)
+    val cyclePrimary = Color(0xFFEAA6B6)
+    val onCyclePrimary = Color(0xFF3F2128)
+    val cycleContainer = Color(0xFF45252F)
+    val onCycleContainer = Color(0xFFFDECEF)
 
-    val plumAccent = Color(0xFFDDB8D8)
-    val plumContainer = Color(0xFF413342)
+    val plumAccent = Color(0xFFDDB5D6)
+    val plumContainer = Color(0xFF402B3F)
     val onPlumContainer = Color(0xFFF0E2F0)
 
-    val sageAccent = Color(0xFFB8D3B6)
+    val sageAccent = Color(0xFFB3CCB2)
     val sageContainer = Color(0xFF2D402C)
     val onSageContainer = Color(0xFFE2F0E0)
 
@@ -100,15 +100,15 @@ private val Dark = object {
     val onErrorContainer = Color(0xFFFFDAD6)
     val warningContainer = Color(0xFF4B3520)
 
-    val privacySurface = Color(0xFF2B2326)
-    val dockSurface = Color(0xFF322A34)
-    val dockContent = Color(0xFFF6EFF1)
-    val dockInactiveContent = Color(0xFFC0B3BA)
-    val dockSelectedContainer = Color(0xFFF0B5C5)
-    val onDockSelectedContainer = Color(0xFF4A2A33)
+    val privacySurface = Color(0xFF2E2328)
+    val dockSurface = Color(0xCC231B20)
+    val dockContent = Color(0xFFFFFFFF)
+    val dockInactiveContent = Color(0xFFD2C4C8)
+    val dockSelectedContainer = Color(0xFF8C4558)
+    val onDockSelectedContainer = Color(0xFFFFFFFF)
     val dockBorder = Color(0x33FFFFFF)
 
-    val supportAccent = Color(0xFFDDB8D8)
+    val supportAccent = Color(0xFFDDB5D6)
 }
 
 /** Rona semantic color container — screens read these via LocalRonaColors. */

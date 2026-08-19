@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.rona.app.data.db.dao.DailyLogDao
-import id.rona.app.data.db.dao.PeriodRecordDao
 import id.rona.app.data.db.entity.DailyLogEntity
-import id.rona.app.data.db.entity.PeriodRecordEntity
+import id.rona.app.data.repository.PeriodRecordRepository
 import id.rona.app.domain.engine.CycleEngine
 import id.rona.app.domain.engine.CyclePrediction
+import id.rona.app.domain.model.PeriodRecord
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +24,7 @@ data class CalendarDay(
     val inCurrentMonth: Boolean,
     val isPeriodActual: Boolean = false,
     val isPeriodOngoing: Boolean = false,
+    val periodId: Long? = null,
     val isPredicted: Boolean = false,
     val hasLog: Boolean = false,
 )
@@ -33,12 +34,13 @@ data class CalendarUiState(
     val yearMonth: YearMonth = YearMonth.now(),
     val days: List<CalendarDay> = emptyList(),
     val selectedDay: LocalDate? = null,
+    val selectedPeriodId: Long? = null,
     val prediction: CyclePrediction? = null,
 )
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
-    private val periodRecordDao: PeriodRecordDao,
+    private val periodRecordRepository: PeriodRecordRepository,
     private val dailyLogDao: DailyLogDao,
 ) : ViewModel() {
 
@@ -46,19 +48,20 @@ class CalendarViewModel @Inject constructor(
     private val _selectedDay = MutableStateFlow<LocalDate?>(null)
 
     val uiState: StateFlow<CalendarUiState> = combine(
-        periodRecordDao.observeAll(),
+        periodRecordRepository.observeAllPeriods(),
         dailyLogDao.observeAll(),
         _yearMonth,
         _selectedDay,
     ) { periods, logs, yearMonth, selectedDay ->
+        val days = buildDays(yearMonth, periods, logs)
+        val selectedCell = days.firstOrNull { it.date == selectedDay }
         CalendarUiState(
             isLoading = false,
             yearMonth = yearMonth,
-            days = buildDays(yearMonth, periods, logs),
+            days = days,
             selectedDay = selectedDay,
-            prediction = CycleEngine.predict(
-                periods.map { LocalDate.ofEpochDay(it.startEpochDay) }
-            ),
+            selectedPeriodId = selectedCell?.periodId,
+            prediction = CycleEngine.predict(periods.map { it.startDate }),
         )
     }.stateIn(
         scope = viewModelScope,
@@ -82,29 +85,9 @@ class CalendarViewModel @Inject constructor(
         _selectedDay.value = null
     }
 
-    fun upsertPeriod(start: LocalDate, end: LocalDate?) {
-        viewModelScope.launch {
-            val now = System.currentTimeMillis()
-            val existing = periodRecordDao.getByStartDay(start.toEpochDay())
-            periodRecordDao.upsert(
-                PeriodRecordEntity(
-                    id = existing?.id ?: 0,
-                    startEpochDay = start.toEpochDay(),
-                    endEpochDay = end?.toEpochDay(),
-                    createdAt = existing?.createdAt ?: now,
-                    updatedAt = now,
-                )
-            )
-        }
-    }
-
-    fun deletePeriod(id: Long) {
-        viewModelScope.launch { periodRecordDao.deleteById(id) }
-    }
-
     private fun buildDays(
         yearMonth: YearMonth,
-        periods: List<PeriodRecordEntity>,
+        periods: List<PeriodRecord>,
         logs: List<DailyLogEntity>,
     ): List<CalendarDay> {
         val firstOfMonth = yearMonth.atDay(1)
@@ -112,16 +95,14 @@ class CalendarViewModel @Inject constructor(
         val totalDays = 42
 
         val periodDays = periods.flatMap { period ->
-            val startDay = LocalDate.ofEpochDay(period.startEpochDay)
-            val endDay = period.endEpochDay?.let { LocalDate.ofEpochDay(it) } ?: LocalDate.now()
-            (period.startEpochDay..endDay.toEpochDay()).map { day ->
+            val startDay = period.startDate
+            val endDay = period.endDate ?: LocalDate.now()
+            (startDay.toEpochDay()..endDay.toEpochDay()).map { day ->
                 day to period
             }
         }.toMap()
 
-        val prediction = CycleEngine.predict(
-            periods.map { LocalDate.ofEpochDay(it.startEpochDay) }
-        )
+        val prediction = CycleEngine.predict(periods.map { it.startDate })
         val predictedRange = prediction?.let {
             it.rangeLow.toEpochDay()..it.rangeHigh.toEpochDay()
         }
@@ -135,7 +116,8 @@ class CalendarViewModel @Inject constructor(
                 date = date,
                 inCurrentMonth = YearMonth.from(date) == yearMonth,
                 isPeriodActual = period != null,
-                isPeriodOngoing = period?.endEpochDay == null,
+                isPeriodOngoing = period?.endDate == null,
+                periodId = period?.id,
                 isPredicted = predictedRange?.contains(date.toEpochDay()) == true && period == null,
                 hasLog = date.toEpochDay() in logDays,
             )

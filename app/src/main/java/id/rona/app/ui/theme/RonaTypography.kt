@@ -106,3 +106,22 @@ val RonaStatsTextStyle = TextStyle(
     letterSpacing = 0.1.sp,
     textAlign = TextAlign.Start,
 )
+
+/** TopBar brand wordmark style (RUNA). */
+val RonaWordmarkStyle = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 24.sp,
+    lineHeight = 28.sp,
+    letterSpacing = 2.5.sp,
+    textAlign = TextAlign.Center,
+)
+
+/** Uppercase micro-label style (e.g. BERIKUTNYA, SIKLUS RATA-RATA). */
+val RonaMicroLabelStyle = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 11.sp,
+    lineHeight = 14.sp,
+    letterSpacing = 1.2.sp,
+)

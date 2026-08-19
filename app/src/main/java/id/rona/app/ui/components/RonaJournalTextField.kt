@@ -12,8 +12,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rona.app.ui.theme.LocalRonaColors
+import id.rona.app.ui.theme.RonaTheme
 
 /**
  * Soft journal-like note field — not a generic outlined TextField.
@@ -59,4 +61,29 @@ fun RonaJournalTextField(
         ),
         textStyle = MaterialTheme.typography.bodyLarge,
     )
+}
+
+// ───────────────────────── Previews ─────────────────────────
+
+@Preview(name = "RonaJournalTextField — Empty Light", showBackground = true)
+@Composable
+private fun RonaJournalTextFieldEmptyPreview() {
+    RonaTheme {
+        RonaJournalTextField(
+            value = "",
+            onValueChange = {},
+            placeholder = "Tuliskan apapun yang kamu rasakan hari ini...",
+        )
+    }
+}
+
+@Preview(name = "RonaJournalTextField — Filled Light", showBackground = true)
+@Composable
+private fun RonaJournalTextFieldFilledPreview() {
+    RonaTheme {
+        RonaJournalTextField(
+            value = "Merasa agak lelah di sore hari, perut sedikit kembung setelah makan siang.",
+            onValueChange = {},
+        )
+    }
 }

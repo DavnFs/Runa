@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -23,12 +25,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rona.app.ui.theme.LocalRonaColors
+import id.rona.app.ui.theme.RonaPillShape
+import id.rona.app.ui.theme.RonaTheme
+
+import androidx.compose.animation.core.animateFloatAsState
+import id.rona.app.ui.theme.RonaMotion
 
 /**
- * Rona primary action button — dusty-rose fill, rounded-large shape,
- * gentle press scale, supports icon + text and wrapped labels.
+ * Rona primary action button — dusty-rose fill, full pill shape,
+ * gentle press scale, min height 52dp for touch comfort.
  */
 @Composable
 fun RonaPrimaryButton(
@@ -40,24 +48,30 @@ fun RonaPrimaryButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val pressScale = if (isPressed) 0.97f else 1f
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = RonaMotion.appleBouncySpring(),
+        label = "btnPressScale",
+    )
 
     Button(
         onClick = onClick,
         enabled = enabled,
         interactionSource = interactionSource,
-        shape = RoundedCornerShape(18.dp),
+        shape = RonaPillShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
         ),
-        modifier = modifier.scale(pressScale),
+        modifier = modifier
+            .heightIn(min = 52.dp)
+            .scale(pressScale),
     ) {
         ButtonContent(text = text, icon = icon)
     }
 }
 
-/** Rona secondary action — tonal plum/surface, not equal to primary CTA. */
+/** Rona secondary action — tonal plum/surface outline, full pill shape. */
 @Composable
 fun RonaSecondaryButton(
     text: String,
@@ -66,11 +80,22 @@ fun RonaSecondaryButton(
     icon: ImageVector? = null,
     enabled: Boolean = true,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = RonaMotion.appleBouncySpring(),
+        label = "secondaryBtnPressScale",
+    )
+
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
-        shape = RoundedCornerShape(18.dp),
-        modifier = modifier,
+        interactionSource = interactionSource,
+        shape = RonaPillShape,
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .scale(pressScale),
     ) {
         ButtonContent(text = text, icon = icon)
     }
@@ -93,12 +118,37 @@ fun RonaTextAction(
 private fun ButtonContent(text: String, icon: ImageVector?) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.heightIn(min = 20.dp),
+        modifier = Modifier.padding(horizontal = 8.dp),
     ) {
         if (icon != null) {
-            Icon(icon, contentDescription = null, modifier = Modifier.width(20.dp))
+            Icon(icon, contentDescription = null, modifier = Modifier.width(18.dp))
             Spacer(Modifier.width(8.dp))
         }
         Text(text, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+// ───────────────────────── Previews ─────────────────────────
+
+@Preview(name = "RonaPrimaryButton — Default Light", showBackground = true)
+@Composable
+private fun RonaPrimaryButtonLightPreview() {
+    RonaTheme {
+        RonaPrimaryButton(
+            text = "Catat keadaanmu hari ini",
+            icon = Icons.Rounded.Edit,
+            onClick = {},
+        )
+    }
+}
+
+@Preview(name = "RonaSecondaryButton — Default Light", showBackground = true)
+@Composable
+private fun RonaSecondaryButtonLightPreview() {
+    RonaTheme {
+        RonaSecondaryButton(
+            text = "Batal",
+            onClick = {},
+        )
     }
 }
