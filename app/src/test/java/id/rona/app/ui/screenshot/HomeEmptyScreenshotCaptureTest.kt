@@ -40,8 +40,11 @@ import java.io.FileOutputStream
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class HomeEmptyScreenshotCaptureTest {
 
-    private val screenshotsDir = File("/home/davin/rona/screenshots").apply { mkdirs() }
-    private val artifactsDir = File("/home/davin/.gemini/antigravity-cli/brain/fd82b07c-f827-4f34-ac79-330cc4c44dae").apply { mkdirs() }
+    private val screenshotsDir by lazy {
+        val base = System.getProperty("user.dir")?.let { File(it) } ?: File(".")
+        val dir = if (base.name == "app") File(base.parentFile, "screenshots") else File(base, "screenshots")
+        dir.apply { mkdirs() }
+    }
 
     private fun renderComposableToBitmap(
         widthDp: Int,
@@ -78,15 +81,14 @@ class HomeEmptyScreenshotCaptureTest {
     }
 
     private fun saveBitmap(bitmap: Bitmap, filename: String) {
-        val fileInRepo = File(screenshotsDir, filename)
-        FileOutputStream(fileInRepo).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        runCatching {
+            val fileInRepo = File(screenshotsDir, filename)
+            fileInRepo.parentFile?.mkdirs()
+            FileOutputStream(fileInRepo).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            println("Saved screenshot: ${fileInRepo.absolutePath}")
         }
-        val fileInArtifacts = File(artifactsDir, filename)
-        FileOutputStream(fileInArtifacts).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-        }
-        println("Saved screenshot: ${fileInRepo.absolutePath} and ${fileInArtifacts.absolutePath}")
     }
 
     @Test
