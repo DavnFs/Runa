@@ -23,7 +23,7 @@ espresso = "3.6.1"
 uiTestJunit4 = "1.7.6"
 hiltAndroidTesting = "2.53.1"
 roomTesting = "2.6.1"
-robolectric = "4.14.1"
+robolectric = "4.16.1"
 coreSplashscreen = "1.0.1"
 sqlcipher = "4.5.4"
 
