@@ -76,14 +76,20 @@ class PeriodEditViewModel @Inject constructor(
     }
 
     fun setEndDate(date: LocalDate?) {
-        _uiState.update { it.copy(endDate = date, isOngoing = date == null, errorMessage = null) }
+        _uiState.update {
+            it.copy(
+                endDate = date,
+                isOngoing = if (date != null) false else it.isOngoing,
+                errorMessage = null,
+            )
+        }
     }
 
     fun setOngoing(ongoing: Boolean) {
         _uiState.update {
             it.copy(
                 isOngoing = ongoing,
-                endDate = if (ongoing) null else it.startDate.plusDays(4),
+                endDate = if (ongoing) null else (it.endDate ?: it.startDate.plusDays(4)),
                 errorMessage = null,
             )
         }
@@ -91,6 +97,14 @@ class PeriodEditViewModel @Inject constructor(
 
     fun requestSave() {
         val state = _uiState.value
+        if (!state.isOngoing && state.endDate == null) {
+            _uiState.update {
+                it.copy(
+                    errorMessage = "Pilih tanggal selesai atau aktifkan opsi 'Periode masih berlangsung'."
+                )
+            }
+            return
+        }
         val effectiveEnd = if (state.isOngoing) null else state.endDate
 
         viewModelScope.launch {

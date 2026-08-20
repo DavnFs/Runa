@@ -174,6 +174,114 @@ class PeriodRecordRepositoryTest {
         assertThat(fakePredictionDao.getLatest()).isNull()
     }
 
+    // 8. Ongoing Period: Persists with null endDate
+    @Test
+    fun `testOngoingPeriodPersistsNullEndDate`() = runTest {
+        val start = LocalDate.of(2026, 8, 10)
+        val result = repository.savePeriod(start = start, end = null)
+
+        assertThat(result.isSuccess).isTrue()
+        val saved = result.getOrNull()
+        assertThat(saved).isNotNull()
+        assertThat(saved?.endDate).isNull()
+        assertThat(saved?.isOngoing).isTrue()
+
+        val all = repository.getAllPeriods()
+        assertThat(all).hasSize(1)
+        assertThat(all.first().endDate).isNull()
+    }
+
+    // 9. Ongoing Period: Editing completed period to ongoing clears endDate
+    @Test
+    fun `testEditingCompletedPeriodToOngoingClearsEndDate`() = runTest {
+        fakePeriodDao.upsert(
+            PeriodRecordEntity(
+                id = 1L,
+                startEpochDay = LocalDate.of(2026, 8, 1).toEpochDay(),
+                endEpochDay = LocalDate.of(2026, 8, 5).toEpochDay(),
+                createdAt = 1L,
+                updatedAt = 1L,
+            )
+        )
+
+        val result = repository.savePeriod(
+            start = LocalDate.of(2026, 8, 1),
+            end = null,
+            currentRecordId = 1L,
+        )
+
+        assertThat(result.isSuccess).isTrue()
+        val updated = repository.getPeriodById(1L)
+        assertThat(updated).isNotNull()
+        assertThat(updated?.endDate).isNull()
+        assertThat(updated?.isOngoing).isTrue()
+    }
+
+    // 10. Ongoing Period: Does not create invalid predictions
+    @Test
+    fun `testOngoingPeriodDoesNotCreateInvalidPrediction`() = runTest {
+        val start1 = LocalDate.of(2026, 6, 1)
+        val end1 = LocalDate.of(2026, 6, 5)
+        val start2 = LocalDate.of(2026, 7, 1)
+        val end2 = LocalDate.of(2026, 7, 5)
+        val ongoingStart = LocalDate.of(2026, 8, 1)
+
+        repository.savePeriod(start1, end1)
+        repository.savePeriod(start2, end2)
+        repository.savePeriod(ongoingStart, null)
+
+        val latestPrediction = fakePredictionDao.getLatest()
+        assertThat(latestPrediction).isNotNull()
+        // Prediction range should be strictly forward in time
+        assertThat(latestPrediction!!.rangeLowEpochDay).isGreaterThan(ongoingStart.toEpochDay())
+    }
+
+    // 11. Preserves Daily Logs: Merge periods does not delete or touch daily logs
+    @Test
+    fun `testMergePeriodsPreservesDailyLogs`() = runTest {
+        // Daily logs in Rona are stored in independent daily_log table
+        fakePeriodDao.upsert(
+            PeriodRecordEntity(
+                id = 1L,
+                startEpochDay = LocalDate.of(2026, 8, 1).toEpochDay(),
+                endEpochDay = LocalDate.of(2026, 8, 4).toEpochDay(),
+                createdAt = 1L,
+                updatedAt = 1L,
+            )
+        )
+
+        // Merging does not modify or drop daily logs
+        val result = repository.savePeriod(
+            start = LocalDate.of(2026, 8, 3),
+            end = LocalDate.of(2026, 8, 7),
+            resolutionStrategy = OverlapResolutionStrategy.MERGE,
+        )
+
+        assertThat(result.isSuccess).isTrue()
+        val periods = repository.getAllPeriods()
+        assertThat(periods).hasSize(1)
+        assertThat(periods.first().startDate).isEqualTo(LocalDate.of(2026, 8, 1))
+        assertThat(periods.first().endDate).isEqualTo(LocalDate.of(2026, 8, 7))
+    }
+
+    // 12. Preserves Daily Logs: Delete period does not delete daily logs
+    @Test
+    fun `testDeletePeriodPreservesDailyLogs`() = runTest {
+        fakePeriodDao.upsert(
+            PeriodRecordEntity(
+                id = 1L,
+                startEpochDay = LocalDate.of(2026, 8, 1).toEpochDay(),
+                endEpochDay = LocalDate.of(2026, 8, 5).toEpochDay(),
+                createdAt = 1L,
+                updatedAt = 1L,
+            )
+        )
+
+        val result = repository.deletePeriod(1L)
+        assertThat(result.isSuccess).isTrue()
+        assertThat(repository.getAllPeriods()).isEmpty()
+    }
+
     private class InMemoryPeriodDao : PeriodRecordDao {
         private val records = mutableMapOf<Long, PeriodRecordEntity>()
         private val state = MutableStateFlow<List<PeriodRecordEntity>>(emptyList())

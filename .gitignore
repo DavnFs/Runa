@@ -1,7 +1,13 @@
 # ==============================================================================
 # Rona — Privacy-First Android .gitignore
-# Prevents accidental commits of secrets, keystores, local SQLite databases,
-# dumps, logs, compiler caches, and private user health data.
+# ==============================================================================
+# IMPORTANT PRIVACY & SECURITY NOTE FOR DEVELOPERS:
+# 1. .gitignore only prevents new/untracked files from being committed. It does
+#    NOT remove files or secrets that were committed previously into Git history.
+# 2. If any credential, signing key, token, or private database is accidentally
+#    committed, it must be IMMEDIATELY REVOKED & ROTATED, not just deleted in Git.
+# 3. NEVER commit real user health data, real menstrual logs, private notes,
+#    or real partner credentials. Always use safe synthetic fixtures for tests.
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -69,10 +75,11 @@ figma_*.png
 *.sqlcipher
 *.rona
 *.ronabackup
-*.backup
-*.dump
-dumps/
-scratch/
+*.runa-backup
+/backups/
+/local-data/
+/dumps/
+/scratch/
 .tempmediaStorage/
 temp/
 tmp/
@@ -96,6 +103,11 @@ ehthumbs.db
 # ------------------------------------------------------------------------------
 # Whitelisted Preserved Files
 # ------------------------------------------------------------------------------
+# Safe environment templates (without actual secrets) are preserved
+!.env.example
+!.env.template
+!.env.sample
+
 # Room schema dumps are required for database migration validation tests
 !app/schemas/
 
