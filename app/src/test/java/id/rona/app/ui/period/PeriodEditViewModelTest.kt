@@ -81,6 +81,52 @@ class PeriodEditViewModelTest {
         assertThat(state.errorMessage).isNull()
     }
 
+    @Test
+    fun `testOngoingPeriodPersistsNullEndDate`() = runTest {
+        viewModel.initialize(periodId = null, initialDate = LocalDate.of(2026, 8, 1))
+        viewModel.setStartDate(LocalDate.of(2026, 8, 1))
+        viewModel.setOngoing(true)
+
+        viewModel.requestSave()
+
+        val state = viewModel.uiState.value
+        assertThat(state.isSavedSuccessfully).isTrue()
+        val saved = fakePeriodDao.getAll().single()
+        assertThat(saved.endEpochDay).isNull()
+        assertThat(LocalDate.ofEpochDay(saved.startEpochDay)).isEqualTo(LocalDate.of(2026, 8, 1))
+    }
+
+    @Test
+    fun `testEditingExistingCompletedPeriodToOngoingClearsEndDate`() = runTest {
+        fakePeriodDao.upsert(
+            PeriodRecordEntity(
+                id = 1L,
+                startEpochDay = LocalDate.of(2026, 8, 1).toEpochDay(),
+                endEpochDay = LocalDate.of(2026, 8, 5).toEpochDay(),
+                createdAt = 1L,
+                updatedAt = 1L,
+            )
+        )
+
+        viewModel.initialize(periodId = 1L, initialDate = null)
+        val loaded = viewModel.uiState.value
+        assertThat(loaded.endDate).isEqualTo(LocalDate.of(2026, 8, 5))
+        assertThat(loaded.isOngoing).isFalse()
+
+        viewModel.setOngoing(true)
+
+        val toggled = viewModel.uiState.value
+        assertThat(toggled.endDate).isNull()
+        assertThat(toggled.isOngoing).isTrue()
+
+        viewModel.requestSave()
+
+        val state = viewModel.uiState.value
+        assertThat(state.isSavedSuccessfully).isTrue()
+        val saved = fakePeriodDao.getAll().single()
+        assertThat(saved.endEpochDay).isNull()
+    }
+
     private class InMemoryPeriodDao : PeriodRecordDao {
         private val records = mutableMapOf<Long, PeriodRecordEntity>()
         private val state = MutableStateFlow<List<PeriodRecordEntity>>(emptyList())

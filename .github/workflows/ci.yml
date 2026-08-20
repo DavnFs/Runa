@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-# Minimal permissions (least privilege principle)
 permissions:
   contents: read
 
@@ -15,49 +14,65 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    name: Build & Test
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+  build:
+    name: Build, Lint & Test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
 
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@4d991eb9995541a0b71d1b66f1f98a5f1bef422c # v2.11.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Validate Gradle Wrapper Integrity
+      - name: Validate Gradle wrapper integrity
         uses: gradle/actions/wrapper-validation@ccb80843a99230550478051752b57ccf72eb37f3 # v4.2.1
 
       - name: Set up JDK 17
         uses: actions/setup-java@8df103950263308ed45e779d5e8c3f9824fec647 # v4.3.0
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle with caching
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@743d5f308a0029b4b04f7c191a62d08a54ca5a6e # v4.2.1
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Android Lint
+      - name: Run Android lint
         run: ./gradlew lintDebug --no-daemon
 
-      - name: Run Unit Tests
+      - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
 
-      - name: Assemble Debug and Release APKs
+      - name: Assemble debug and release APKs
         run: ./gradlew assembleDebug assembleRelease --no-daemon
 
-      - name: Verify Privacy Architecture — No INTERNET Permission in Merged Manifests
+      - name: Verify privacy architecture — no INTERNET permission in merged manifests
         run: |
           echo "Verifying debug and release merged manifests for zero internet permission..."
-          if grep -R "android.permission.INTERNET" app/build/intermediates/merged_manifests/debug app/build/intermediates/merged_manifests/release; then
+          if grep -R "android.permission.INTERNET" \
+            app/build/intermediates/merged_manifests/debug \
+            app/build/intermediates/merged_manifests/release; then
             echo "::error::SECURITY VIOLATION: android.permission.INTERNET detected in merged manifests! Local-only build policy violated."
             exit 1
           fi
-          echo "✓ Security check passed: No INTERNET permission found in debug or release manifests."
+          echo "✓ Security check passed: No INTERNET permission found in debug or release merged manifests."
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: rona-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Verify reports contain no sensitive or database files
+        id: audit
         if: failure()
         run: |
           ! find app/build/reports -type f \( \
@@ -66,23 +81,45 @@ jobs:
             -name "*.sqlcipher" -o \
             -name "*.rona" -o \
             -name "*.ronabackup" -o \
+            -name "*.runa-backup" -o \
             -name "*.env" -o \
             -name "*.jks" -o \
-            -name "*.keystore" \
+            -name "*.keystore" -o \
+            -name "*.pem" -o \
+            -name "*.key" \
           \) | grep .
 
-      - name: Upload Test Results
-        if: failure()
+      - name: Upload test results
+        if: failure() && steps.audit.outcome == 'success'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: unit-test-results
           path: app/build/reports/tests/testDebugUnitTest/
+          if-no-files-found: ignore
           retention-days: 7
 
-      - name: Upload Lint Report
-        if: failure()
+      - name: Upload lint report
+        if: failure() && steps.audit.outcome == 'success'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: lint-report
           path: app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
           retention-days: 7
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          fail-on-severity: high

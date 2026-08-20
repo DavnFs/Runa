@@ -48,6 +48,8 @@ local.properties
 *.bks
 keystore.properties
 signing.properties
+# CI-generated signing material (never committed; rotated per release)
+app/keystore/
 
 # ------------------------------------------------------------------------------
 # Secrets, Tokens, API Keys & Environment Configs (CRITICAL)

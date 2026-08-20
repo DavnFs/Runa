@@ -17,13 +17,28 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Scope rules:
+# - pull_request: scans only the PR diff (shallow fetch, no secrets used,
+#   never pull_request_target — do not run untrusted fork code with secrets).
+# - push/schedule/workflow_dispatch: full-history scan (fetch-depth: 0).
+#
+# Remediation policy for any detection:
+#   1. Revoke/rotate the exposed credential FIRST.
+#   2. Then remove it from the repo and, only if necessary, clean history.
+#   3. Never treat deletion from the latest branch as sufficient.
+
 jobs:
   gitleaks-scan:
     name: Gitleaks Secret & Credential Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@4d991eb9995541a0b71d1b66f1f98a5f1bef422c # v2.11.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository (Full History for Schedule/Push, Shallow for PR)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:

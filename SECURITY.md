@@ -26,4 +26,6 @@ Rona is engineered as a **Privacy-First, Local-First** application:
   - No real user health data, credentials, or private keys are ever committed.
   - Automated CI pipelines verify that no unauthorized network permissions are added to local builds.
   - Third-party GitHub Actions are pinned to full immutable 40-character commit SHAs.
-  - Artifacts in CI are limited to failure diagnostics and are strictly audited to ensure no database files or private data are packaged.
+  - CI artifacts are failure diagnostics only, retained ≤ 7 days, and strictly audited to ensure no database files or private data are packaged. They are **not** client-side encrypted — the policy is exclusion, not encryption.
+- **Threat Model**: See [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md).
+- **Data Policy**: See [docs/LOCAL_DATA_POLICY.md](docs/LOCAL_DATA_POLICY.md).
