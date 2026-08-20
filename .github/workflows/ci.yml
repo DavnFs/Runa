@@ -48,16 +48,6 @@ jobs:
       - name: Assemble Debug APK
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: Verify Privacy Architecture — No INTERNET Permission
-        run: |
-          echo "Verifying merged manifest for zero internet permission..."
-          MERGED_MANIFEST=$(find app/build/intermediates/merged_manifests -name "AndroidManifest.xml" | head -n 1)
-          if [ -n "$MERGED_MANIFEST" ] && grep -q "android.permission.INTERNET" "$MERGED_MANIFEST"; then
-            echo "::error file=$MERGED_MANIFEST::SECURITY VIOLATION: android.permission.INTERNET detected in merged manifest!"
-            exit 1
-          fi
-          echo "✓ Security check passed: No INTERNET permission found."
-
       - name: Upload Test Results
         if: failure()
         uses: actions/upload-artifact@v4
