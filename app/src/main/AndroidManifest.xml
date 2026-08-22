@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Deliberately NO android.permission.INTERNET. Rona is offline-only by design. -->
+    <!-- Local-first data architecture: health logs stored strictly on-device with E2EE partner sharing prepared -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application

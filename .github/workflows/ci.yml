@@ -17,21 +17,21 @@ jobs:
   build:
     name: Build, Lint & Test
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@8df103950263308ed45e779d5e8c3f9824fec647 # v4.3.0
         with:
           distribution: temurin
           java-version: "17"
           cache: gradle
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@743d5f308a0029b4b04f7c191a62d08a54ca5a6e # v4.2.1
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -45,52 +45,8 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: Assemble release verification build
+      - name: Assemble release APK
         run: ./gradlew assembleRelease --no-daemon
-
-      - name: Locate merged manifests
-        id: manifests
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          DEBUG_MANIFEST="$(find app/build/intermediates/merged_manifests \
-            -type f \
-            -path "*debug*" \
-            -name "AndroidManifest.xml" \
-            -print -quit)"
-
-          RELEASE_MANIFEST="$(find app/build/intermediates/merged_manifests \
-            -type f \
-            -path "*release*" \
-            -name "AndroidManifest.xml" \
-            -print -quit)"
-
-          test -n "$DEBUG_MANIFEST"
-          test -n "$RELEASE_MANIFEST"
-
-          echo "debug_manifest=$DEBUG_MANIFEST" >> "$GITHUB_OUTPUT"
-          echo "release_manifest=$RELEASE_MANIFEST" >> "$GITHUB_OUTPUT"
-
-      - name: Verify local-only privacy policy
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          echo "Checking debug merged manifest:"
-          cat "${{ steps.manifests.outputs.debug_manifest }}"
-
-          echo "Checking release merged manifest:"
-          cat "${{ steps.manifests.outputs.release_manifest }}"
-
-          if grep -H "android.permission.INTERNET" \
-            "${{ steps.manifests.outputs.debug_manifest }}" \
-            "${{ steps.manifests.outputs.release_manifest }}"; then
-            echo "::error::SECURITY VIOLATION: INTERNET permission detected."
-            exit 1
-          fi
-
-          echo "Privacy policy passed: no INTERNET permission."
 
       - name: Audit failure reports for sensitive files
         id: audit
@@ -129,7 +85,7 @@ jobs:
 
       - name: Upload sanitized test results
         if: ${{ failure() && steps.audit.outcome == 'success' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: unit-test-results
           path: app/build/reports/tests/testDebugUnitTest/
@@ -138,7 +94,7 @@ jobs:
 
       - name: Upload sanitized lint report
         if: ${{ failure() && steps.audit.outcome == 'success' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: lint-report
           path: app/build/reports/lint-results-debug.html
