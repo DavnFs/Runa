@@ -21,17 +21,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@8df103950263308ed45e779d5e8c3f9824fec647 # v4.3.0
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
           cache: gradle
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@743d5f308a0029b4b04f7c191a62d08a54ca5a6e # v4.2.1
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -85,7 +85,7 @@ jobs:
 
       - name: Upload sanitized test results
         if: ${{ failure() && steps.audit.outcome == 'success' }}
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-results
           path: app/build/reports/tests/testDebugUnitTest/
@@ -94,7 +94,7 @@ jobs:
 
       - name: Upload sanitized lint report
         if: ${{ failure() && steps.audit.outcome == 'success' }}
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@v4
         with:
           name: lint-report
           path: app/build/reports/lint-results-debug.html
