@@ -290,7 +290,7 @@ class PeriodRecordRepositoryTest {
         assertThat(fakeDailyLogDao.getAll().map { it.note })
             .contains("test note only — no real health data")
         assertThat(fakeSymptomLogDao.getAll()).hasSize(2)
-        assertThat(fakeSymptomLogDao.getForLog(logIds.first)).hasSize(2)
+        assertThat(fakeSymptomLogDao.getForLog(logIds.first())).hasSize(2)
     }
 
     // 12. Preserves Daily Logs: Delete period does not delete daily logs
@@ -313,8 +313,8 @@ class PeriodRecordRepositoryTest {
         assertThat(repository.getAllPeriods()).isEmpty()
 
         assertThat(fakeDailyLogDao.getAll()).hasSize(5)
-        assertThat(fakeDailyLogDao.getById(logIds.first)).isNotNull()
-        assertThat(fakeSymptomLogDao.getForLog(logIds.first)).hasSize(2)
+        assertThat(fakeDailyLogDao.getById(logIds.first())).isNotNull()
+        assertThat(fakeSymptomLogDao.getForLog(logIds.first())).hasSize(2)
     }
 
     private class InMemoryPeriodDao : PeriodRecordDao {
