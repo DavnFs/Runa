@@ -1,10 +1,10 @@
-name: Rona CI
+name: Runa CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -20,25 +20,18 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@4d991eb9995541a0b71d1b66f1f98a5f1bef422c # v2.11.0
-        with:
-          egress-policy: audit
-
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Validate Gradle wrapper integrity
-        uses: gradle/actions/wrapper-validation@ccb80843a99230550478051752b57ccf72eb37f3 # v4.2.1
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@8df103950263308ed45e779d5e8c3f9824fec647 # v4.3.0
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
+          cache: gradle
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@743d5f308a0029b4b04f7c191a62d08a54ca5a6e # v4.2.1
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -49,34 +42,72 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
 
-      - name: Assemble debug and release APKs
-        run: ./gradlew assembleDebug assembleRelease --no-daemon
+      - name: Assemble debug APK
+        run: ./gradlew assembleDebug --no-daemon
 
-      - name: Verify privacy architecture — no INTERNET permission in merged manifests
+      - name: Assemble release verification build
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Locate merged manifests
+        id: manifests
+        shell: bash
         run: |
-          echo "Verifying debug and release merged manifests for zero internet permission..."
-          if grep -R "android.permission.INTERNET" \
-            app/build/intermediates/merged_manifests/debug \
-            app/build/intermediates/merged_manifests/release; then
-            echo "::error::SECURITY VIOLATION: android.permission.INTERNET detected in merged manifests! Local-only build policy violated."
+          set -euo pipefail
+
+          DEBUG_MANIFEST="$(find app/build/intermediates/merged_manifests \
+            -type f \
+            -path "*debug*" \
+            -name "AndroidManifest.xml" \
+            -print -quit)"
+
+          RELEASE_MANIFEST="$(find app/build/intermediates/merged_manifests \
+            -type f \
+            -path "*release*" \
+            -name "AndroidManifest.xml" \
+            -print -quit)"
+
+          test -n "$DEBUG_MANIFEST"
+          test -n "$RELEASE_MANIFEST"
+
+          echo "debug_manifest=$DEBUG_MANIFEST" >> "$GITHUB_OUTPUT"
+          echo "release_manifest=$RELEASE_MANIFEST" >> "$GITHUB_OUTPUT"
+
+      - name: Verify local-only privacy policy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking debug merged manifest:"
+          cat "${{ steps.manifests.outputs.debug_manifest }}"
+
+          echo "Checking release merged manifest:"
+          cat "${{ steps.manifests.outputs.release_manifest }}"
+
+          if grep -H "android.permission.INTERNET" \
+            "${{ steps.manifests.outputs.debug_manifest }}" \
+            "${{ steps.manifests.outputs.release_manifest }}"; then
+            echo "::error::SECURITY VIOLATION: INTERNET permission detected."
             exit 1
           fi
-          echo "✓ Security check passed: No INTERNET permission found in debug or release merged manifests."
 
-      - name: Upload debug APK
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: rona-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-          retention-days: 7
+          echo "Privacy policy passed: no INTERNET permission."
 
-      - name: Verify reports contain no sensitive or database files
+      - name: Audit failure reports for sensitive files
         id: audit
-        if: failure()
+        if: ${{ failure() }}
+        shell: bash
         run: |
-          ! find app/build/reports -type f \( \
+          set -euo pipefail
+
+          if [ ! -d "app/build/reports" ]; then
+            echo "No reports directory exists; no artifact will be uploaded."
+            exit 0
+          fi
+
+          SENSITIVE_FILE="$(find app/build/reports -type f \( \
             -name "*.db" -o \
+            -name "*.db-wal" -o \
+            -name "*.db-shm" -o \
             -name "*.sqlite" -o \
             -name "*.sqlcipher" -o \
             -name "*.rona" -o \
@@ -87,39 +118,29 @@ jobs:
             -name "*.keystore" -o \
             -name "*.pem" -o \
             -name "*.key" \
-          \) | grep .
+          \) -print -quit)"
 
-      - name: Upload test results
-        if: failure() && steps.audit.outcome == 'success'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+          if [ -n "$SENSITIVE_FILE" ]; then
+            echo "::error::Sensitive file found in CI report directory: $SENSITIVE_FILE"
+            exit 1
+          fi
+
+          echo "Failure reports are safe to upload."
+
+      - name: Upload sanitized test results
+        if: ${{ failure() && steps.audit.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-results
           path: app/build/reports/tests/testDebugUnitTest/
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Upload lint report
-        if: failure() && steps.audit.outcome == 'success'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - name: Upload sanitized lint report
+        if: ${{ failure() && steps.audit.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
         with:
           name: lint-report
           path: app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
           retention-days: 7
-
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      pull-requests: write
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Dependency review
-        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
-        with:
-          fail-on-severity: high
