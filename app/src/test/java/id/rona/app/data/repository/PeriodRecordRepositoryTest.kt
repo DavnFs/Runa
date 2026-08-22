@@ -414,6 +414,8 @@ class PeriodRecordRepositoryTest {
         private val state = MutableStateFlow<List<SymptomLogEntity>>(emptyList())
         private var nextId = 1L
 
+        fun getAll(): List<SymptomLogEntity> = symptoms.values.toList()
+
         override fun observeForLog(dailyLogId: Long): Flow<List<SymptomLogEntity>> = state
         override fun observeAll(): Flow<List<SymptomLogEntity>> = state
         override suspend fun getForLog(dailyLogId: Long): List<SymptomLogEntity> =
@@ -427,10 +429,12 @@ class PeriodRecordRepositoryTest {
             return id
         }
         override suspend fun deleteForLogAndType(dailyLogId: Long, symptomType: String) {
-            symptoms.values.removeIf { it.dailyLogId == dailyLogId && it.symptomType.name == symptomType }
+            val keys = symptoms.filter { it.value.dailyLogId == dailyLogId && it.value.symptomType.name == symptomType }.keys
+            keys.forEach { symptoms.remove(it) }
         }
         override suspend fun deleteForLog(dailyLogId: Long) {
-            symptoms.values.removeIf { it.dailyLogId == dailyLogId }
+            val keys = symptoms.filter { it.value.dailyLogId == dailyLogId }.keys
+            keys.forEach { symptoms.remove(it) }
         }
         override suspend fun deleteAll() {
             symptoms.clear()
