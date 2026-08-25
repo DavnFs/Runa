@@ -33,6 +33,9 @@ fun RonaNavHost() {
     val navController = rememberNavController()
     // null == sheet closed; non-null epochDay == sheet open for that calendar day.
     var guidedLogDateEpochDay by rememberSaveable { mutableStateOf<Long?>(null) }
+    var guidedLogSessionId by rememberSaveable { mutableStateOf(0L) }
+    var fullLogDateEpochDay by rememberSaveable { mutableStateOf<Long?>(null) }
+    var fullLogSessionId by rememberSaveable { mutableStateOf(0L) }
     var showFullLogSheet by rememberSaveable { mutableStateOf(false) }
 
     NavHost(
@@ -52,8 +55,14 @@ fun RonaNavHost() {
         }
         composable<Main> {
             MainScreen(
-                onLogToday = { guidedLogDateEpochDay = LocalDate.now().toEpochDay() },
-                onLogDate = { date -> guidedLogDateEpochDay = date.toEpochDay() },
+                onLogToday = {
+                    guidedLogSessionId += 1
+                    guidedLogDateEpochDay = LocalDate.now().toEpochDay()
+                },
+                onLogDate = { date ->
+                    guidedLogSessionId += 1
+                    guidedLogDateEpochDay = date.toEpochDay()
+                },
                 onOpenSettings = { navController.navigate(Settings) },
             )
         }
@@ -90,8 +99,11 @@ fun RonaNavHost() {
         ) {
             GuidedCheckInSheet(
                 date = sheetDate,
+                sessionId = guidedLogSessionId,
                 onDismiss = { guidedLogDateEpochDay = null },
                 onOpenFullEditor = {
+                    fullLogSessionId += 1
+                    fullLogDateEpochDay = sheetDate?.toEpochDay()
                     guidedLogDateEpochDay = null
                     showFullLogSheet = true
                 },
@@ -107,6 +119,8 @@ fun RonaNavHost() {
             shape = RonaBottomSheetShape,
         ) {
             FullLogEditorSheet(
+                date = fullLogDateEpochDay?.let { LocalDate.ofEpochDay(it) },
+                sessionId = fullLogSessionId,
                 onDismiss = { showFullLogSheet = false },
             )
         }

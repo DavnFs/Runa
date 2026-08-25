@@ -132,7 +132,7 @@ class GuidedCheckInFlowMatrixTest {
     @Test
     fun `period flow with no ongoing period goes to confirm`() = runTest(mainDispatcherRule.testDispatcher) {
         val today = LocalDate.of(2026, 8, 23)
-        viewModel.load(today)
+        viewModel.load(1L, today)
         viewModel.selectInitialChoice(InitialChoiceOption.PERIOD_FLOW)
 
         assertThat(viewModel.uiState.value.currentStep).isEqualTo(DailyCheckInStep.PeriodStartConfirm)
@@ -142,7 +142,7 @@ class GuidedCheckInFlowMatrixTest {
     @Test
     fun `confirm creates period and continues to Flow`() = runTest(mainDispatcherRule.testDispatcher) {
         val today = LocalDate.of(2026, 8, 23)
-        viewModel.load(today)
+        viewModel.load(1L, today)
         viewModel.selectInitialChoice(InitialChoiceOption.PERIOD_FLOW)
         viewModel.confirmPeriodStart()
         testScheduler.advanceUntilIdle()
@@ -155,7 +155,7 @@ class GuidedCheckInFlowMatrixTest {
     @Test
     fun `declining period start creates nothing and returns to Initial`() = runTest(mainDispatcherRule.testDispatcher) {
         val today = LocalDate.of(2026, 8, 23)
-        viewModel.load(today)
+        viewModel.load(1L, today)
         viewModel.selectInitialChoice(InitialChoiceOption.PERIOD_FLOW)
         viewModel.cancelPeriodStart()
 
@@ -173,7 +173,7 @@ class GuidedCheckInFlowMatrixTest {
             createdAt = 0L,
             updatedAt = 0L,
         )
-        viewModel.load(today)
+        viewModel.load(1L, today)
         viewModel.selectInitialChoice(InitialChoiceOption.PERIOD_FLOW)
 
         assertThat(viewModel.uiState.value.currentStep).isEqualTo(DailyCheckInStep.Flow)
@@ -208,13 +208,13 @@ class GuidedCheckInFlowMatrixTest {
     @Test
     fun `load resets stale answers between sessions`() = runTest(mainDispatcherRule.testDispatcher) {
         val today = LocalDate.of(2026, 8, 23)
-        viewModel.load(today)
+        viewModel.load(1L, today)
         viewModel.selectFlow(FlowLevel.HEAVY)
         viewModel.toggleSymptom(SymptomType.NAUSEA, Severity.SEVERE)
         viewModel.setNote("isi lama")
 
-        // Reopen same date: old session must not bleed through.
-        viewModel.load(today)
+        // Explicitly reopen the same date as a new session.
+        viewModel.load(2L, today)
         viewModel.uiState.test {
             val state = awaitItem()
             assertThat(state.currentStep).isEqualTo(DailyCheckInStep.Initial)

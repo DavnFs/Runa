@@ -69,14 +69,15 @@ import java.util.Locale
 @Composable
 fun FullLogEditorSheet(
     date: LocalDate? = null,
+    sessionId: Long = 0L,
     onDismiss: () -> Unit,
     viewModel: LogEditorViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Always (re)load on open so reopening after a save starts fresh.
-    LaunchedEffect(Unit) {
-        viewModel.load(date ?: uiState.date ?: java.time.LocalDate.now())
+    LaunchedEffect(sessionId, date) {
+        viewModel.load(sessionId, date ?: java.time.LocalDate.now())
     }
 
     LaunchedEffect(uiState.saveState) {

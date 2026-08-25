@@ -83,6 +83,7 @@ class LogEditorViewModel @Inject constructor(
     val uiState: StateFlow<LogEditorUiState> = _uiState.asStateFlow()
 
     private val json = Json { ignoreUnknownKeys = true }
+    private var loadedSessionIdentity: Pair<Long, LocalDate>? = null
 
     /**
      * Start (or restart) a session for [date].
@@ -92,7 +93,9 @@ class LogEditorViewModel @Inject constructor(
      * skips back to a terminal state. If an existing log exists for [date], its
      * persisted values are loaded back in.
      */
-    fun load(date: LocalDate = LocalDate.now()) {
+    fun load(sessionId: Long, date: LocalDate = LocalDate.now()) {
+        if (loadedSessionIdentity == sessionId to date) return
+        loadedSessionIdentity = sessionId to date
         viewModelScope.launch {
             // Fresh session: wipe everything, then hydrate from persistence if present.
             _uiState.value = LogEditorUiState(

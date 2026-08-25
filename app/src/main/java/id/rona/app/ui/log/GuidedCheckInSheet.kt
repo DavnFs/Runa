@@ -109,6 +109,7 @@ import kotlin.math.roundToInt
 @Composable
 fun GuidedCheckInSheet(
     date: LocalDate? = null,
+    sessionId: Long = 0L,
     onDismiss: () -> Unit,
     onOpenFullEditor: () -> Unit,
     modifier: Modifier = Modifier,
@@ -119,8 +120,8 @@ fun GuidedCheckInSheet(
 
     // Always (re)load on first composition so reopening after a prior save starts
     // clean instead of resuming stale answers or skipping the Initial card.
-    LaunchedEffect(Unit) {
-        viewModel.load(date ?: uiState.date ?: java.time.LocalDate.now())
+    LaunchedEffect(sessionId, date) {
+        viewModel.load(sessionId, date ?: java.time.LocalDate.now())
     }
 
     // A successful save is transient: acknowledge, reset the session, and close.

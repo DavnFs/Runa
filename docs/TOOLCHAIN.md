@@ -1,59 +1,60 @@
-# Daftar Langkah Toolchain Rona
+# Rona Toolchain
 
-Build rona di mesin ini tanpa install sistem (semua di `~/.local/`).
+## Requirements
 
-## Persyaratan
-- Java 17
-- Android SDK: platform 34, build-tools 34.0.0, platform-tools
-- Gradle 8.11.1 (wrapper mengunduh otomatis)
+- JDK 17 is required by the Android Gradle Plugin used by this project.
+- Android SDK with:
+  - Android platform 34
+  - Build-tools 34.0.0
+  - Platform-tools
+  - An emulator or physical device for instrumented tests
+- Gradle is provided by the checked-in Gradle wrapper (`./gradlew`).
 
-## Instalasi (sekali saja)
+## Local setup
+
+Set `JAVA_HOME` to an installed JDK 17 before building. The path is machine-specific and must not be committed:
+
 ```bash
-# JDK 17
-mkdir -p ~/.local/toolchain ~/.local/android-sdk ~/.local/dl
-cd ~/.local/dl
-curl -sL -o jdk17.tar.gz "https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse"
-tar -xzf jdk17.tar.gz -C ~/.local/toolchain
-
-# Gradle (untuk bootstrap wrapper; setelah wrapper ada, pakai ./gradlew)
-curl -sL -o gradle-8.11.1-bin.zip https://services.gradle.org/distributions/gradle-8.11.1-bin.zip
-unzip -q -o gradle-8.11.1-bin.zip -d ~/.local/toolchain
-
-# Android cmdline-tools
-curl -sL -o cmdtools.zip "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
-mkdir -p ~/.local/android-sdk/cmdline-tools/latest
-unzip -q -o cmdtools.zip -d ~/.local/android-sdk/cmdline-tools/latest
-if [ -d ~/.local/android-sdk/cmdline-tools/latest/cmdline-tools ]; then
-  mv ~/.local/android-sdk/cmdline-tools/latest/cmdline-tools/* ~/.local/android-sdk/cmdline-tools/latest/
-  rmdir ~/.local/android-sdk/cmdline-tools/latest/cmdline-tools
-fi
-
-# SDK packages + lisensi
-export JAVA_HOME="$HOME/.local/toolchain/jdk-17.0.20+8"
+export JAVA_HOME="$HOME/path/to/jdk-17"
 export PATH="$JAVA_HOME/bin:$PATH"
-yes | ~/.local/android-sdk/cmdline-tools/latest/bin/sdkmanager \
-  --sdk_root="$HOME/.local/android-sdk" --licenses
-~/.local/android-sdk/cmdline-tools/latest/bin/sdkmanager \
-  --sdk_root="$HOME/.local/android-sdk" \
-  "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-```
-
-## Environment per sesi build
-```bash
-export JAVA_HOME="$HOME/.local/toolchain/jdk-17.0.20+8"
-export PATH="$JAVA_HOME/bin:$PATH"
-export ANDROID_HOME="$HOME/.local/android-sdk"
+export ANDROID_HOME="$HOME/Android/Sdk"
 export ANDROID_SDK_ROOT="$ANDROID_HOME"
 ```
 
-> Catatan: versi JDK bisa berbeda (cek `ls ~/.local/toolchain/`). Tidak perlu `local.properties`
-> karena `ANDROID_HOME` diekspor.
+This repository's `local.properties` may contain a local `sdk.dir`; do not commit personal SDK or JDK paths.
 
-## Perintah umum
+## Verify Java and Gradle
+
 ```bash
-./gradlew assembleDebug        # build APK debug
-./gradlew lintDebug            # lint
-./gradlew testDebugUnitTest    # unit test
-./gradlew assembleRelease      # rilis (butuh signing)
-./gradlew connectedDebugAndroidTest  # instrumented test (butuh device/emulator)
+java -version
+./gradlew --version
 ```
+
+Both commands must report Java 17. Gradle's `Launcher JVM` and `Daemon JVM` should also be JDK 17.
+
+## Build and test
+
+```bash
+./gradlew testDebugUnitTest
+./gradlew lintDebug
+./gradlew assembleDebug
+./gradlew assembleRelease
+```
+
+Instrumented tests require a running emulator or connected device:
+
+```bash
+./gradlew connectedDebugAndroidTest
+```
+
+## CI
+
+GitHub Actions is the portable source of truth for CI's JDK 17 setup. Local machine paths are not part of the build contract.
+
+Do not commit:
+
+- Machine-specific JDK paths
+- `org.gradle.java.home` pointing to a home-directory installation such as `~/tools/jdk17`
+- Personal SDK paths outside the intended local `local.properties`
+
+The Gradle wrapper and the Android SDK configuration are the portable project inputs; JDK 17 is selected by the local environment or GitHub Actions.

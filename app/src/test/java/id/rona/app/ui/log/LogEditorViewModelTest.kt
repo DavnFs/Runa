@@ -228,7 +228,7 @@ class LogEditorViewModelTest {
             createdAt = 0L,
             updatedAt = 0L,
         )
-        viewModel.load(today)
+        viewModel.load(1L, today)
 
         viewModel.selectInitialChoice(InitialChoiceOption.PERIOD_FLOW)
         viewModel.selectFlow(FlowLevel.MEDIUM)
@@ -264,7 +264,7 @@ class LogEditorViewModelTest {
     @Test
     fun `save persists log through repository and sets Saved`() = runTest(mainDispatcherRule.testDispatcher) {
         val today = LocalDate.of(2026, 8, 23)
-        viewModel.load(today)
+        viewModel.load(1L, today)
 
         viewModel.selectFlow(FlowLevel.HEAVY)
         viewModel.toggleSymptom(SymptomType.KRAM, Severity.SEVERE)
@@ -293,11 +293,29 @@ class LogEditorViewModelTest {
         assertThat(fakeSymptomLogDao.savedSymptoms.single().severity).isEqualTo(Severity.SEVERE)
     }
 
-    // 8b. Acknowledging the save resets the session cleanly (reopen starts fresh)
+    // 8b. Same session identity is idempotent; a new identity resets state.
+    @Test
+    fun `same session load preserves answers but new session load resets them`() = runTest(mainDispatcherRule.testDispatcher) {
+        val today = LocalDate.of(2026, 8, 23)
+        viewModel.load(1L, today)
+        viewModel.selectFlow(FlowLevel.LIGHT)
+        viewModel.setNote("isi sementara")
+
+        viewModel.load(1L, today)
+        assertThat(viewModel.uiState.value.flow).isEqualTo(FlowLevel.LIGHT)
+        assertThat(viewModel.uiState.value.note).isEqualTo("isi sementara")
+
+        viewModel.load(2L, today)
+        assertThat(viewModel.uiState.value.flow).isNull()
+        assertThat(viewModel.uiState.value.note).isEmpty()
+        assertThat(viewModel.uiState.value.currentStep).isEqualTo(DailyCheckInStep.Initial)
+    }
+
+    // 8c. Acknowledging the save resets the session cleanly (reopen starts fresh)
     @Test
     fun `acknowledgeSaved resets session for clean reopen`() = runTest(mainDispatcherRule.testDispatcher) {
         val today = LocalDate.of(2026, 8, 23)
-        viewModel.load(today)
+        viewModel.load(1L, today)
         viewModel.selectFlow(FlowLevel.LIGHT)
         viewModel.setNote("isi lama")
         viewModel.save()
@@ -357,7 +375,7 @@ class LogEditorViewModelTest {
     @Test
     fun `period start confirmation creates a period record and continues to Flow`() = runTest(mainDispatcherRule.testDispatcher) {
         val today = LocalDate.of(2026, 8, 23)
-        viewModel.load(today)
+        viewModel.load(1L, today)
 
         viewModel.selectInitialChoice(InitialChoiceOption.PERIOD_FLOW)
         assertThat(viewModel.uiState.value.currentStep).isEqualTo(DailyCheckInStep.PeriodStartConfirm)
@@ -376,7 +394,7 @@ class LogEditorViewModelTest {
     @Test
     fun `declining period start persists nothing and returns to Initial`() = runTest(mainDispatcherRule.testDispatcher) {
         val today = LocalDate.of(2026, 8, 23)
-        viewModel.load(today)
+        viewModel.load(1L, today)
 
         viewModel.selectInitialChoice(InitialChoiceOption.PERIOD_FLOW)
         assertThat(viewModel.uiState.value.currentStep).isEqualTo(DailyCheckInStep.PeriodStartConfirm)
@@ -399,7 +417,7 @@ class LogEditorViewModelTest {
             updatedAt = 0L,
         )
 
-        viewModel.load(today)
+        viewModel.load(1L, today)
         assertThat(viewModel.uiState.value.isPeriodContextAvailable).isTrue()
 
         viewModel.selectInitialChoice(InitialChoiceOption.PERIOD_FLOW)
