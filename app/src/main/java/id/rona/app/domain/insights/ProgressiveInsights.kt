@@ -142,14 +142,9 @@ object ProgressiveInsightsGenerator {
     ): InsightMaturityLevel = when {
         periodStartCount <= 0 -> InsightMaturityLevel.LEVEL_0_EMPTY
         periodStartCount == 1 -> InsightMaturityLevel.LEVEL_1_SINGLE_START
-        periodStartCount <= 5 -> InsightMaturityLevel.LEVEL_3_ESTABLISHING
-        else -> InsightMaturityLevel.LEVEL_4_MATURE
-    }.let { level ->
-        if (periodStartCount == 2 && validIntervalCount <= 1) {
-            InsightMaturityLevel.LEVEL_2_INITIAL_HISTORY
-        } else {
-            level
-        }
+        periodStartCount == 2 && validIntervalCount <= 1 -> InsightMaturityLevel.LEVEL_2_INITIAL_HISTORY
+        periodStartCount >= 6 && validIntervalCount >= 5 -> InsightMaturityLevel.LEVEL_4_MATURE
+        else -> InsightMaturityLevel.LEVEL_3_ESTABLISHING
     }
 
     fun generate(

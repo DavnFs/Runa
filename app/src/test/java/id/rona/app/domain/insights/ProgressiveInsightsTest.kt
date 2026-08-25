@@ -86,7 +86,7 @@ class ProgressiveInsightsTest {
             dailyLogCount = 1,
         )
 
-        assertThat(insights.maturity).isEqualTo(InsightMaturityLevel.LEVEL_4_MATURE)
+        assertThat(insights.maturity).isEqualTo(InsightMaturityLevel.LEVEL_3_ESTABLISHING)
         assertThat(insights.cards.filterIsInstance<TrendCard>()).isEmpty()
     }
 
