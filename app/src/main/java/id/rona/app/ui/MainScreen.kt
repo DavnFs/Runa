@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import java.time.LocalDate
 import kotlin.math.roundToInt
 import id.rona.app.ui.calendar.CalendarScreen
 import id.rona.app.ui.components.RonaDockDestination
@@ -26,6 +27,7 @@ import id.rona.app.ui.theme.RonaMotion
 @Composable
 fun MainScreen(
     onLogToday: () -> Unit,
+    onLogDate: (LocalDate) -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(RonaDockDestination.HOME) }
@@ -87,6 +89,7 @@ fun MainScreen(
                 )
                 RonaDockDestination.CALENDAR -> CalendarScreen(
                     onOpenSettings = onOpenSettings,
+                    onLogDate = onLogDate,
                     modifier = contentModifier,
                 )
                 RonaDockDestination.INSIGHTS -> InsightsScreen(

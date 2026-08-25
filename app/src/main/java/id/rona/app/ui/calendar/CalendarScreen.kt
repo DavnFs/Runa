@@ -54,13 +54,14 @@ import java.util.Locale
 import id.rona.app.ui.components.RonaTopBar
 import id.rona.app.ui.theme.RonaTheme
 
-private val weekdayLabels = listOf("MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB")
+private val weekdayLabels = calendarWeekdayLabelsMonFirst
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
     onOpenSettings: (() -> Unit)? = null,
+    onLogDate: ((LocalDate) -> Unit)? = null,
     viewModel: CalendarViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -147,6 +148,10 @@ fun CalendarScreen(
                         editingPeriodId = periodId
                         editingInitialDate = date
                         showPeriodEditSheet = true
+                    },
+                    onLogForDate = { date ->
+                        viewModel.dismissDayDetail()
+                        onLogDate?.invoke(date)
                     },
                     onDismiss = viewModel::dismissDayDetail,
                 )
@@ -391,6 +396,7 @@ private fun LegendItem(
 private fun DayDetailSheet(
     day: CalendarDay,
     onOpenPeriodEdit: (Long?, LocalDate) -> Unit,
+    onLogForDate: ((LocalDate) -> Unit)? = null,
     onDismiss: () -> Unit,
 ) {
     val colors = LocalRonaColors.current
@@ -452,6 +458,14 @@ private fun DayDetailSheet(
             id.rona.app.ui.components.RonaSecondaryButton(
                 text = "+ Catat periode di tanggal ini",
                 onClick = { onOpenPeriodEdit(null, day.date) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        if (onLogForDate != null) {
+            id.rona.app.ui.components.RonaSecondaryButton(
+                text = "Catat keadaan di tanggal ini",
+                onClick = { onLogForDate(day.date) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }

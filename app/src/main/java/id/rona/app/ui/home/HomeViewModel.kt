@@ -108,6 +108,11 @@ class HomeViewModel @Inject constructor(
 
     fun startPeriod(date: LocalDate = LocalDate.now()) {
         viewModelScope.launch {
+            val existing = periodRecordRepository.getAllPeriods()
+            if (existing.any { it.isOngoing }) {
+                PrivacyLogger.d(TAG) { "startPeriod ignored: an ongoing period already exists" }
+                return@launch
+            }
             periodRecordRepository.savePeriod(start = date, end = null)
         }
     }

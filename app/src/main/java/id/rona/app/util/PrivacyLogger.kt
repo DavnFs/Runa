@@ -12,17 +12,35 @@ object PrivacyLogger {
 
     @JvmStatic
     fun d(tag: String, message: () -> String) {
-        if (BuildConfigSafe.isDebug()) Log.d("Rona/$tag", message())
+        if (BuildConfigSafe.isDebug()) {
+            try {
+                Log.d("Rona/$tag", message())
+            } catch (_: RuntimeException) {
+                // android.util.Log is unmocked on plain JVM unit tests — never crash.
+            }
+        }
     }
 
     @JvmStatic
     fun e(tag: String, message: () -> String) {
-        if (BuildConfigSafe.isDebug()) Log.e("Rona/$tag", message())
+        if (BuildConfigSafe.isDebug()) {
+            try {
+                Log.e("Rona/$tag", message())
+            } catch (_: RuntimeException) {
+                // android.util.Log is unmocked on plain JVM unit tests — never crash.
+            }
+        }
     }
 
     @JvmStatic
     fun w(tag: String, message: () -> String) {
-        if (BuildConfigSafe.isDebug()) Log.w("Rona/$tag", message())
+        if (BuildConfigSafe.isDebug()) {
+            try {
+                Log.w("Rona/$tag", message())
+            } catch (_: RuntimeException) {
+                // android.util.Log is unmocked on plain JVM unit tests — never crash.
+            }
+        }
     }
 }
 

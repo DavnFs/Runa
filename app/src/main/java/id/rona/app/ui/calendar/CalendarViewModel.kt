@@ -91,7 +91,7 @@ class CalendarViewModel @Inject constructor(
         logs: List<DailyLogEntity>,
     ): List<CalendarDay> {
         val firstOfMonth = yearMonth.atDay(1)
-        val start = firstOfMonth.minusDays((firstOfMonth.dayOfWeek.value - 1).toLong())
+        val start = monthStartDay(yearMonth)
         val totalDays = 42
 
         val periodDays = periods.flatMap { period ->

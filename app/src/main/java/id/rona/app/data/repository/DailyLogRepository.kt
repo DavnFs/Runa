@@ -1,7 +1,6 @@
 package id.rona.app.data.repository
 
-import androidx.room.withTransaction
-import id.rona.app.data.db.RonaDatabase
+import id.rona.app.data.db.TransactionRunner
 import id.rona.app.data.db.dao.DailyLogDao
 import id.rona.app.data.db.dao.SymptomLogDao
 import id.rona.app.data.db.entity.DailyLogEntity
@@ -19,7 +18,7 @@ import javax.inject.Singleton
 
 @Singleton
 class DailyLogRepository @Inject constructor(
-    private val db: RonaDatabase,
+    private val transactionRunner: TransactionRunner,
     private val dailyLogDao: DailyLogDao,
     private val symptomLogDao: SymptomLogDao,
 ) {
@@ -66,7 +65,7 @@ class DailyLogRepository @Inject constructor(
         nowMs: Long = System.currentTimeMillis(),
     ): Long {
         var resultId = 0L
-        db.withTransaction {
+        transactionRunner {
             val existing = dailyLogDao.getByDate(date.toEpochDay())
             resultId = dailyLogDao.upsert(
                 DailyLogEntity(

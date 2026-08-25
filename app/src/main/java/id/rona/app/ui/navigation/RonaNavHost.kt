@@ -12,7 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import id.rona.app.ui.MainScreen
-import id.rona.app.ui.log.LogEditorSheet
+import id.rona.app.ui.log.FullLogEditorSheet
+import id.rona.app.ui.log.GuidedCheckInSheet
 import id.rona.app.ui.onboarding.OnboardingScreen
 import id.rona.app.ui.settings.AboutScreen
 import id.rona.app.ui.settings.AppearanceSettingsScreen
@@ -23,12 +24,16 @@ import id.rona.app.ui.settings.NotificationSettingsScreen
 import id.rona.app.ui.settings.PrivacyPolicyScreen
 import id.rona.app.ui.settings.SecuritySettingsScreen
 import id.rona.app.ui.settings.SettingsScreen
+import id.rona.app.ui.theme.RonaBottomSheetShape
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RonaNavHost() {
     val navController = rememberNavController()
-    var showLogSheet by rememberSaveable { mutableStateOf(false) }
+    // null == sheet closed; non-null epochDay == sheet open for that calendar day.
+    var guidedLogDateEpochDay by rememberSaveable { mutableStateOf<Long?>(null) }
+    var showFullLogSheet by rememberSaveable { mutableStateOf(false) }
 
     NavHost(
         navController = navController,
@@ -47,7 +52,8 @@ fun RonaNavHost() {
         }
         composable<Main> {
             MainScreen(
-                onLogToday = { showLogSheet = true },
+                onLogToday = { guidedLogDateEpochDay = LocalDate.now().toEpochDay() },
+                onLogDate = { date -> guidedLogDateEpochDay = date.toEpochDay() },
                 onOpenSettings = { navController.navigate(Settings) },
             )
         }
@@ -73,13 +79,36 @@ fun RonaNavHost() {
         composable<About> { AboutScreen(onBack = { navController.popBackStack() }) }
     }
 
-    if (showLogSheet) {
+    val guidedLogOpen = guidedLogDateEpochDay != null
+    if (guidedLogOpen) {
+        val sheetDate = guidedLogDateEpochDay?.let { LocalDate.ofEpochDay(it) }
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
-            onDismissRequest = { showLogSheet = false },
+            onDismissRequest = { guidedLogDateEpochDay = null },
             sheetState = sheetState,
+            shape = RonaBottomSheetShape,
         ) {
-            LogEditorSheet(onDismiss = { showLogSheet = false })
+            GuidedCheckInSheet(
+                date = sheetDate,
+                onDismiss = { guidedLogDateEpochDay = null },
+                onOpenFullEditor = {
+                    guidedLogDateEpochDay = null
+                    showFullLogSheet = true
+                },
+            )
+        }
+    }
+
+    if (showFullLogSheet) {
+        val fullSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showFullLogSheet = false },
+            sheetState = fullSheetState,
+            shape = RonaBottomSheetShape,
+        ) {
+            FullLogEditorSheet(
+                onDismiss = { showFullLogSheet = false },
+            )
         }
     }
 }

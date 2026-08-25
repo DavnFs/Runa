@@ -55,9 +55,8 @@ import id.rona.app.ui.components.RonaPrimaryButton
 import id.rona.app.ui.components.RonaSecondaryButton
 import id.rona.app.ui.theme.LocalRonaColors
 import id.rona.app.ui.theme.RonaPillShape
-import java.time.Instant
+import id.rona.app.util.DatePickerDates
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -243,15 +242,14 @@ fun PeriodEditBottomSheet(
     // ───────────────────────── Date Pickers ─────────────────────────
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = uiState.startDate.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+            initialSelectedDateMillis = DatePickerDates.toMillis(uiState.startDate)
         )
         DatePickerDialog(
             onDismissRequest = { showStartDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        val picked = Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
-                        viewModel.setStartDate(picked)
+                        viewModel.setStartDate(DatePickerDates.fromMillis(millis))
                     }
                     showStartDatePicker = false
                 }) {
@@ -271,15 +269,14 @@ fun PeriodEditBottomSheet(
     if (showEndDatePicker) {
         val currentEnd = uiState.endDate ?: uiState.startDate
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = currentEnd.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+            initialSelectedDateMillis = DatePickerDates.toMillis(currentEnd)
         )
         DatePickerDialog(
             onDismissRequest = { showEndDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        val picked = Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
-                        viewModel.setEndDate(picked)
+                        viewModel.setEndDate(DatePickerDates.fromMillis(millis))
                     }
                     showEndDatePicker = false
                 }) {
