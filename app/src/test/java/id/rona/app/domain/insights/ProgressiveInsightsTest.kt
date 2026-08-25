@@ -91,6 +91,19 @@ class ProgressiveInsightsTest {
     }
 
     @Test
+    fun `mature trend requires enough confirmed daily logs`() {
+        val starts = starts(
+            "2026-01-01", "2026-01-29", "2026-02-26", "2026-03-26", "2026-04-23", "2026-05-21",
+        )
+        val sparse = ProgressiveInsightsGenerator.generate(starts, 10, dailyLogCount = 4)
+        val sufficient = ProgressiveInsightsGenerator.generate(starts, 10, dailyLogCount = 5)
+
+        assertThat(sparse.maturity).isEqualTo(InsightMaturityLevel.LEVEL_4_MATURE)
+        assertThat(sparse.cards.filterIsInstance<TrendCard>()).isEmpty()
+        assertThat(sufficient.cards.filterIsInstance<TrendCard>()).hasSize(1)
+    }
+
+    @Test
     fun `every generated card has an explicit source label`() {
         val insights = ProgressiveInsightsGenerator.generate(
             periodStarts = starts("2026-01-01", "2026-01-29", "2026-02-26"),

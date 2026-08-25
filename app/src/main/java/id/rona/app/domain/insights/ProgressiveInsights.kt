@@ -133,6 +133,7 @@ data class ProgressiveInsights(
 object ProgressiveInsightsGenerator {
     const val MIN_PATTERN_OBSERVATIONS = 3
     const val MIN_TREND_INTERVALS = 5
+    const val MIN_TREND_LOGS = 5
 
     fun maturity(
         periodStartCount: Int,
@@ -218,7 +219,10 @@ object ProgressiveInsightsGenerator {
                             explanation = "${count} catatan memuat ${symptom.displayName()}. Pola pada catatanmu, bukan diagnosis.",
                         ))
                     }
-                if (level == InsightMaturityLevel.LEVEL_4_MATURE && validIntervals.size >= MIN_TREND_INTERVALS) {
+                if (level == InsightMaturityLevel.LEVEL_4_MATURE &&
+                    validIntervals.size >= MIN_TREND_INTERVALS &&
+                    dailyLogCount >= MIN_TREND_LOGS
+                ) {
                     add(TrendCard("cycle-length-trend", validIntervals))
                 }
             }
