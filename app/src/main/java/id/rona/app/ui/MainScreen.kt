@@ -84,6 +84,7 @@ fun MainScreen(
                 RonaDockDestination.HOME -> HomeScreen(
                     onLogToday = onLogToday,
                     onOpenCalendar = { selectedTab = RonaDockDestination.CALENDAR },
+                    onOpenInsights = { selectedTab = RonaDockDestination.INSIGHTS },
                     onOpenSettings = onOpenSettings,
                     modifier = contentModifier,
                 )

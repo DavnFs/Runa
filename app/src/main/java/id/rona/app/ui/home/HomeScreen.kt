@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,6 +76,7 @@ import java.util.Locale
 fun HomeScreen(
     onLogToday: () -> Unit,
     onOpenCalendar: () -> Unit,
+    onOpenInsights: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -131,6 +133,7 @@ fun HomeScreen(
                     },
                     onLogToday = onLogToday,
                     onOpenCalendar = onOpenCalendar,
+                    onOpenInsights = onOpenInsights,
                 )
             }
         }
@@ -400,6 +403,7 @@ private fun HomeSuccessContent(
     onEditPeriod: (Long?, LocalDate) -> Unit,
     onLogToday: () -> Unit,
     onOpenCalendar: () -> Unit,
+    onOpenInsights: () -> Unit,
 ) {
     val colors = LocalRonaColors.current
 
@@ -420,11 +424,14 @@ private fun HomeSuccessContent(
         },
     )
 
-    // 3. Insight Card: "Pola yang kamu catat"
-    RonaHomeInsightCard(
-        title = "Pola yang kamu catat",
-        text = "Energi rendah lebih sering muncul menjelang periode.",
-    )
+    // 3. One maturity-appropriate, data-backed insight.
+    homeData.primaryInsight.primaryCard?.let { insight ->
+        RonaHomeInsightCard(
+            title = insight.title,
+            text = insight.explanation ?: "Pola pada catatanmu, bukan diagnosis.",
+            onClick = onOpenInsights,
+        )
+    }
 
     // 4. Quick Action Row
     Row(
@@ -634,12 +641,15 @@ fun RonaCycleHero(
 fun RonaHomeInsightCard(
     title: String,
     text: String,
+    onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalRonaColors.current
 
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier),
         shape = MaterialTheme.shapes.medium,
         color = colors.surfaceSoft,
     ) {
@@ -749,6 +759,7 @@ private fun HomeSuccessLightPreview() {
             onEditPeriod = { _, _ -> },
             onLogToday = {},
             onOpenCalendar = {},
+            onOpenInsights = {},
         )
     }
 }

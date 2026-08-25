@@ -7,6 +7,8 @@ import id.rona.app.data.db.dao.DailyLogDao
 import id.rona.app.data.repository.PeriodRecordRepository
 import id.rona.app.domain.engine.CycleEngine
 import id.rona.app.domain.engine.CyclePrediction
+import id.rona.app.domain.insights.ProgressiveInsights
+import id.rona.app.domain.insights.ProgressiveInsightsGenerator
 import id.rona.app.domain.model.PeriodRecord
 import id.rona.app.util.PrivacyLogger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +33,7 @@ data class HomeData(
     val prediction: CyclePrediction? = null,
     val totalPeriods: Int = 0,
     val totalLogs: Int = 0,
+    val primaryInsight: ProgressiveInsights = ProgressiveInsightsGenerator.generate(emptyList(), null, 0),
 )
 
 /**
@@ -90,14 +93,22 @@ class HomeViewModel @Inject constructor(
 
         val starts = map { it.startDate }
         val latest = maxByOrNull { it.startDate }
+        val cycleDay = CycleEngine.cycleDayFor(LocalDate.now(), starts)
+        val prediction = CycleEngine.predict(starts)
         return HomeUiState.Success(
             HomeData(
-                cycleDay = CycleEngine.cycleDayFor(LocalDate.now(), starts),
+                cycleDay = cycleDay,
                 isPeriodActive = any { it.isOngoing },
                 latestPeriod = latest,
-                prediction = CycleEngine.predict(starts),
+                prediction = prediction,
                 totalPeriods = size,
                 totalLogs = logCount,
+                primaryInsight = ProgressiveInsightsGenerator.generate(
+                    periodStarts = starts,
+                    cycleDay = cycleDay,
+                    dailyLogCount = logCount,
+                    prediction = prediction,
+                ),
             )
         )
     }
