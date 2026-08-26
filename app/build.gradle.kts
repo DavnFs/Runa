@@ -1,4 +1,20 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+
+val requestedVersionName = providers.gradleProperty("versionName").orElse("0.1.0")
+val requestedVersionCode = providers.gradleProperty("versionCode").map { it.toInt() }.orElse(1)
+val signingPropertiesPath = providers.gradleProperty("signingPropertiesFile").orNull
+val signingPropertiesFile = signingPropertiesPath?.let { path ->
+    file(path).also { check(it.isFile) { "Signing properties file does not exist: $path" } }
+}
+val signingProperties = signingPropertiesFile?.let { propertiesFile ->
+    Properties().apply {
+        propertiesFile.inputStream().use(::load)
+        listOf("storePassword", "keyAlias", "keyPassword").forEach { key ->
+            check(getProperty(key).orEmpty().isNotEmpty()) { "Missing signing property: $key" }
+        }
+    }
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -17,16 +33,30 @@ android {
         applicationId = "id.rona.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = requestedVersionCode.get()
+        versionName = requestedVersionName.get()
         testInstrumentationRunner = "id.rona.app.HiltTestRunner"
         vectorDrawables { useSupportLibrary = true }
+    }
+
+    signingConfigs {
+        if (signingProperties != null) {
+            create("personalBeta") {
+                storeFile = file(signingProperties.getProperty("storeFile"))
+                storePassword = signingProperties.getProperty("storePassword")
+                keyAlias = signingProperties.getProperty("keyAlias")
+                keyPassword = signingProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            if (signingProperties != null) {
+                signingConfig = signingConfigs.getByName("personalBeta")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
