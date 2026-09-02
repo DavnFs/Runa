@@ -95,6 +95,7 @@ fun MainScreen(
                 )
                 RonaDockDestination.INSIGHTS -> InsightsScreen(
                     onOpenSettings = onOpenSettings,
+                    onLogToday = onLogToday,
                     modifier = contentModifier,
                 )
             }

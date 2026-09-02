@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rona.app.domain.insights.CycleStabilityCard
-import id.rona.app.domain.insights.CurrentCycleDayCard
 import id.rona.app.domain.insights.EducationCard
 import id.rona.app.domain.insights.InsightCard
 import id.rona.app.domain.insights.InsightSourceLabel
@@ -48,6 +47,7 @@ import java.util.Locale
 fun InsightsScreen(
     modifier: Modifier = Modifier,
     onOpenSettings: (() -> Unit)? = null,
+    onLogToday: (() -> Unit)? = null,
     viewModel: InsightsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -88,6 +88,14 @@ fun InsightsScreen(
 
             uiState.progressiveInsights.cards.forEach { card ->
                 InsightCardView(card)
+            }
+
+            if (uiState.progressiveInsights.maturity == id.rona.app.domain.insights.InsightMaturityLevel.LEVEL_0_EMPTY && onLogToday != null) {
+                id.rona.app.ui.components.RonaPrimaryButton(
+                    text = "Catat periode terakhir",
+                    onClick = onLogToday,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
 
             Surface(
@@ -178,7 +186,6 @@ private fun cardValue(card: InsightCard): String = when (card) {
         if (card.cycleDay != null) append(" Hari siklus saat ini: ${card.cycleDay}.")
         if (card.logCount > 0) append(" ${card.logCount} catatan harian terkonfirmasi.")
     }
-    is CurrentCycleDayCard -> "Hari ke-${card.cycleDay}."
     is LastObservedIntervalCard -> "${card.days} hari"
     is PredictionRangeCard -> {
         val formatter = DateTimeFormatter.ofPattern("d MMMM", Locale("id", "ID"))

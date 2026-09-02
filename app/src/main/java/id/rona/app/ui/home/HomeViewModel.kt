@@ -4,13 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.rona.app.data.db.dao.DailyLogDao
+import id.rona.app.data.db.dao.SymptomLogDao
 import id.rona.app.data.repository.PeriodRecordRepository
 import id.rona.app.domain.engine.CycleEngine
 import id.rona.app.domain.engine.CyclePrediction
 import id.rona.app.domain.insights.ProgressiveInsights
 import id.rona.app.domain.insights.ProgressiveInsightsGenerator
 import id.rona.app.domain.model.PeriodRecord
+import id.rona.app.domain.model.SymptomType
 import id.rona.app.util.PrivacyLogger
+import kotlin.collections.groupingBy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -58,6 +61,7 @@ sealed interface HomeUiState {
 class HomeViewModel @Inject constructor(
     private val periodRecordRepository: PeriodRecordRepository,
     private val dailyLogDao: DailyLogDao,
+    private val symptomLogDao: SymptomLogDao,
 ) : ViewModel() {
 
     private val refreshTick = MutableStateFlow(0)
@@ -67,8 +71,10 @@ class HomeViewModel @Inject constructor(
             combine(
                 periodRecordRepository.observeAllPeriods(),
                 dailyLogDao.observeAll(),
-            ) { periods, logs ->
-                periods.toHomeState(logs.size)
+                symptomLogDao.observeAll(),
+            ) { periods, logs, symptoms ->
+                val symptomCounts = symptoms.groupingBy { it.symptomType }.eachCount()
+                periods.toHomeState(logs.size, symptomCounts)
             }
                 .onStart { if (tick > 0) emit(HomeUiState.Loading) }
         }
@@ -88,7 +94,10 @@ class HomeViewModel @Inject constructor(
             initialValue = HomeUiState.Loading,
         )
 
-    private fun List<PeriodRecord>.toHomeState(logCount: Int): HomeUiState {
+    private fun List<PeriodRecord>.toHomeState(
+        logCount: Int,
+        symptomCounts: Map<id.rona.app.domain.model.SymptomType, Int> = emptyMap(),
+    ): HomeUiState {
         if (isEmpty()) return HomeUiState.Empty
 
         val starts = map { it.startDate }
@@ -107,6 +116,7 @@ class HomeViewModel @Inject constructor(
                     periodStarts = starts,
                     cycleDay = cycleDay,
                     dailyLogCount = logCount,
+                    symptomCounts = symptomCounts,
                     prediction = prediction,
                 ),
             )

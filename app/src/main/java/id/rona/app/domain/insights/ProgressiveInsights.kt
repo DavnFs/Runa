@@ -69,16 +69,6 @@ data class LastObservedIntervalCard(
     override val sourceLabel = InsightSourceLabel.RECORDED
 }
 
-data class CurrentCycleDayCard(
-    override val id: String,
-    val cycleDay: Int,
-    override val title: String = "Hari siklus saat ini",
-    override val explanation: String? = null,
-) : InsightCard {
-    override val category = InsightCategory.RECORDED
-    override val sourceLabel = InsightSourceLabel.RECORDED
-}
-
 data class PredictionRangeCard(
     override val id: String,
     val prediction: CyclePrediction,

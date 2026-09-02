@@ -696,6 +696,16 @@ fun RonaHomeInsightCard(
                         color = colors.inkSecondary,
                     ),
                 )
+                if (onClick != null) {
+                    Text(
+                        text = "Lihat insight →",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colors.cyclePrimary,
+                        ),
+                    )
+                }
             }
         }
     }

@@ -47,6 +47,7 @@ class HomeViewModelTest {
         return HomeViewModel(
             periodRecordRepository = repository,
             dailyLogDao = FakeLogDao(logs),
+            symptomLogDao = FakeSymptomLogDao(),
         )
     }
 
@@ -182,6 +183,17 @@ class HomeViewModelTest {
         override suspend fun count(): Int = 0
         override suspend fun upsert(log: DailyLogEntity): Long = 0
         override suspend fun deleteById(id: Long) = Unit
+        override suspend fun deleteAll() = Unit
+    }
+
+    private class FakeSymptomLogDao : id.rona.app.data.db.dao.SymptomLogDao {
+        override fun observeForLog(dailyLogId: Long): Flow<List<id.rona.app.data.db.entity.SymptomLogEntity>> = flowOf(emptyList())
+        override fun observeAll(): Flow<List<id.rona.app.data.db.entity.SymptomLogEntity>> = flowOf(emptyList())
+        override suspend fun getForLog(dailyLogId: Long): List<id.rona.app.data.db.entity.SymptomLogEntity> = emptyList()
+        override suspend fun getFrequencyByType(): List<id.rona.app.data.db.dao.SymptomLogDao.SymptomFrequency> = emptyList()
+        override suspend fun upsert(symptom: id.rona.app.data.db.entity.SymptomLogEntity): Long = 0
+        override suspend fun deleteForLogAndType(dailyLogId: Long, symptomType: String) = Unit
+        override suspend fun deleteForLog(dailyLogId: Long) = Unit
         override suspend fun deleteAll() = Unit
     }
 
