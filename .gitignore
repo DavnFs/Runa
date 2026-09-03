@@ -93,6 +93,7 @@ tmp/
 .system_generated/
 .gemini/
 *.log
+docs/
 
 # ------------------------------------------------------------------------------
 # OS / Desktop Metadata
