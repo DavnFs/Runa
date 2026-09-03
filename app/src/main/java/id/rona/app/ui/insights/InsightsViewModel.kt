@@ -19,6 +19,8 @@ import javax.inject.Inject
 data class InsightsUiState(
     val isLoading: Boolean = true,
     val progressiveInsights: ProgressiveInsights = ProgressiveInsightsGenerator.generate(emptyList(), null, 0),
+    val cycleDay: Int? = null,
+    val medianCycleLength: Int? = null,
 )
 
 @HiltViewModel
@@ -35,9 +37,13 @@ class InsightsViewModel @Inject constructor(
     ) { periods, logs, symptoms ->
         val starts = periods.map { it.startDate }.distinct().sorted()
         val symptomCounts = symptoms.groupingBy { it.symptomType }.eachCount()
+        val cycleDay = CycleEngine.cycleDayFor(LocalDate.now(), starts)
+        val medianCycleLength = CycleEngine.recentValidCycleLengths(starts)
+            .takeIf { it.isNotEmpty() }
+            ?.let(CycleEngine::median)
         val progressive = ProgressiveInsightsGenerator.generate(
             periodStarts = starts,
-            cycleDay = CycleEngine.cycleDayFor(LocalDate.now(), starts),
+            cycleDay = cycleDay,
             dailyLogCount = logs.size,
             symptomCounts = symptomCounts,
         )
@@ -45,6 +51,8 @@ class InsightsViewModel @Inject constructor(
         InsightsUiState(
             isLoading = false,
             progressiveInsights = progressive,
+            cycleDay = cycleDay,
+            medianCycleLength = medianCycleLength,
         )
     }.stateIn(
         scope = viewModelScope,

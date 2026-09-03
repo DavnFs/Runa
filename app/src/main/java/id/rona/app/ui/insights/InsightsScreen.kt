@@ -1,5 +1,7 @@
 package id.rona.app.ui.insights
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,17 +10,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.QueryStats
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -27,9 +40,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.rona.app.domain.insights.CycleEducationProvider
+import id.rona.app.domain.insights.CycleEducationTopic
 import id.rona.app.domain.insights.CycleStabilityCard
 import id.rona.app.domain.insights.EducationCard
 import id.rona.app.domain.insights.InsightCard
+import id.rona.app.domain.insights.InsightMaturityLevel
 import id.rona.app.domain.insights.InsightSourceLabel
 import id.rona.app.domain.insights.LastObservedIntervalCard
 import id.rona.app.domain.insights.PatternCard
@@ -98,9 +114,12 @@ fun InsightsScreen(
                 )
             }
 
+            var showEducationSheet by remember { mutableStateOf(false) }
+
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable { showEducationSheet = true }
                     .semantics { contentDescription = "Edukasi umum tentang cara memahami siklus" },
                 shape = MaterialTheme.shapes.medium,
                 color = colors.surfaceSoft,
@@ -114,11 +133,20 @@ fun InsightsScreen(
                         ),
                     )
                     Text(
-                        text = "Pelajari cara membaca catatan siklus secara tenang dan non-diagnostik.",
+                        text = "Pelajari fase siklus dan cara kerja prediksi.",
                         style = MaterialTheme.typography.bodyMedium.copy(color = colors.inkSecondary),
                     )
                     SourceLabel(InsightSourceLabel.GENERAL_EDUCATION)
                 }
+            }
+
+            if (showEducationSheet) {
+                CycleEducationSheet(
+                    maturity = uiState.progressiveInsights.maturity,
+                    cycleDay = uiState.cycleDay,
+                    medianCycleLength = uiState.medianCycleLength,
+                    onDismiss = { showEducationSheet = false },
+                )
             }
 
             Text(
@@ -227,6 +255,159 @@ private fun symptomLabel(symptom: id.rona.app.domain.model.SymptomType): String 
     id.rona.app.domain.model.SymptomType.BACKACHE -> "nyeri punggung"
     id.rona.app.domain.model.SymptomType.SLEEP_ISSUE -> "sulit tidur"
     id.rona.app.domain.model.SymptomType.APPETITE_CHANGE -> "perubahan nafsu makan"
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CycleEducationSheet(
+    maturity: InsightMaturityLevel,
+    cycleDay: Int?,
+    medianCycleLength: Int?,
+    onDismiss: () -> Unit,
+) {
+    val colors = LocalRonaColors.current
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val topics = remember(maturity) { CycleEducationProvider.topicsForMaturity(maturity) }
+    val phaseTopic = remember(cycleDay, medianCycleLength, maturity) {
+        CycleEducationProvider.phaseTopicForToday(cycleDay, medianCycleLength, maturity)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = "Memahami siklusmu",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = colors.inkPrimary,
+                ),
+            )
+            Text(
+                text = "Pelajari fase siklus dan cara kerja prediksi.",
+                style = MaterialTheme.typography.bodyMedium.copy(color = colors.inkSecondary),
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // Phase-specific topic at top if available
+            if (phaseTopic != null) {
+                EducationTopicCard(
+                    topic = phaseTopic,
+                    badge = "Fase saat ini",
+                )
+            }
+
+            // All general topics
+            topics.forEach { topic ->
+                if (topic.id != phaseTopic?.id) {
+                    EducationTopicCard(topic = topic)
+                }
+            }
+
+            // Mandatory disclaimer
+            Spacer(Modifier.height(8.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                color = colors.surfaceSoft,
+            ) {
+                Text(
+                    text = "Perkiraan kalender tidak dapat memastikan ovulasi dan tidak ditujukan sebagai metode kontrasepsi atau jaminan kehamilan.",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = colors.inkTertiary,
+                        fontWeight = FontWeight.Medium,
+                    ),
+                    modifier = Modifier.padding(16.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EducationTopicCard(
+    topic: CycleEducationTopic,
+    badge: String? = null,
+) {
+    val colors = LocalRonaColors.current
+    var expanded by remember { mutableStateOf(false) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = colors.surfaceSoft,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    if (badge != null) {
+                        Text(
+                            text = badge,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = colors.cyclePrimary,
+                            ),
+                        )
+                        Spacer(Modifier.height(2.dp))
+                    }
+                    Text(
+                        text = topic.title,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = colors.inkPrimary,
+                        ),
+                    )
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                    contentDescription = if (expanded) "Tutup" else "Buka",
+                    tint = colors.inkTertiary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+            Text(
+                text = topic.summary,
+                style = MaterialTheme.typography.bodyMedium.copy(color = colors.inkSecondary),
+            )
+            AnimatedVisibility(visible = expanded) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    topic.details.forEach { detail ->
+                        Text(
+                            text = "• $detail",
+                            style = MaterialTheme.typography.bodySmall.copy(color = colors.inkSecondary),
+                        )
+                    }
+                    topic.disclaimer?.let { disclaimer ->
+                        Text(
+                            text = disclaimer,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = colors.inkTertiary,
+                                fontWeight = FontWeight.Medium,
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 @androidx.compose.ui.tooling.preview.Preview(name = "Insights Screen — Light", showBackground = true)
