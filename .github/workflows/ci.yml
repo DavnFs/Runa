@@ -37,7 +37,7 @@ jobs:
           cache: gradle
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       # Satu pemanggilan Gradle, bukan empat. Tiap pemanggilan terpisah
       # membayar ulang start-up JVM + konfigurasi Gradle.
