@@ -52,10 +52,10 @@ import id.rona.app.domain.insights.PatternCard
 import id.rona.app.domain.insights.PredictionRangeCard
 import id.rona.app.domain.insights.RecordedCycleCard
 import id.rona.app.domain.insights.TrendCard
-import id.rona.app.ui.components.RonaLoadingSkeleton
-import id.rona.app.ui.components.RonaTopBar
+import id.rona.app.ui.components.RunaLoadingSkeleton
+import id.rona.app.ui.components.RunaTopBar
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaTheme
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -70,7 +70,7 @@ fun InsightsScreen(
     val colors = LocalRonaColors.current
 
     if (uiState.isLoading) {
-        RonaLoadingSkeleton(modifier = modifier.fillMaxSize(), message = "Menyiapkan pola…")
+        RunaLoadingSkeleton(modifier = modifier.fillMaxSize(), message = "Menyiapkan pola…")
         return
     }
 
@@ -79,7 +79,7 @@ fun InsightsScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        RonaTopBar(onOpenSettings = onOpenSettings)
+        RunaTopBar(onOpenSettings = onOpenSettings)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -106,8 +106,47 @@ fun InsightsScreen(
                 InsightCardView(card)
             }
 
+            if (uiState.cycleLengths.size >= 3) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    color = colors.surfaceSoft,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = "Tren siklusmu",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.inkPrimary,
+                            ),
+                        )
+                        Text(
+                            text = "Panjang siklus terakhir, dalam hari.",
+                            style = MaterialTheme.typography.bodyMedium.copy(color = colors.inkSecondary),
+                        )
+                        id.rona.app.ui.components.RunaBarChart(
+                            values = uiState.cycleLengths,
+                            labels = uiState.cycleLengthLabels,
+                            median = uiState.medianCycleLength,
+                        )
+                        uiState.medianCycleLength?.let { median ->
+                            val lengths = uiState.cycleLengths
+                            Text(
+                                text = "Rata-rata: $median hari · Rentang: ${lengths.minOrNull() ?: median}–${lengths.maxOrNull() ?: median}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.inkTertiary,
+                            )
+                        }
+                        SourceLabel(InsightSourceLabel.PERSONAL_PATTERN)
+                    }
+                }
+            }
+
             if (uiState.progressiveInsights.maturity == id.rona.app.domain.insights.InsightMaturityLevel.LEVEL_0_EMPTY && onLogToday != null) {
-                id.rona.app.ui.components.RonaPrimaryButton(
+                id.rona.app.ui.components.RunaPrimaryButton(
                     text = "Catat periode terakhir",
                     onClick = onLogToday,
                     modifier = Modifier.fillMaxWidth(),
@@ -413,5 +452,5 @@ private fun EducationTopicCard(
 @androidx.compose.ui.tooling.preview.Preview(name = "Insights Screen — Light", showBackground = true)
 @Composable
 private fun InsightsScreenLightPreview() {
-    RonaTheme { InsightsScreen(onOpenSettings = {}) }
+    RunaTheme { InsightsScreen(onOpenSettings = {}) }
 }

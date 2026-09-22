@@ -8,7 +8,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class)
-class RonaButtonsTest {
+class RunaButtonsTest {
 
     @get:Rule
     val composeRule = createComposeRule()
@@ -26,8 +26,8 @@ class RonaButtonsTest {
     fun primaryButtonDisplaysTextAndInvokesClick() {
         var clicked = false
         composeRule.setContent {
-            RonaTheme {
-                RonaPrimaryButton(
+            RunaTheme {
+                RunaPrimaryButton(
                     text = "Catat keadaanmu hari ini",
                     icon = Icons.Rounded.Edit,
                     onClick = { clicked = true },
@@ -48,8 +48,8 @@ class RonaButtonsTest {
     fun secondaryButtonDisplaysTextAndInvokesClick() {
         var clicked = false
         composeRule.setContent {
-            RonaTheme {
-                RonaSecondaryButton(
+            RunaTheme {
+                RunaSecondaryButton(
                     text = "Batal",
                     onClick = { clicked = true },
                 )

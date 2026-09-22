@@ -13,7 +13,7 @@ interface TransactionRunner {
 
 @Singleton
 class RoomTransactionRunner @Inject constructor(
-    private val db: RonaDatabase,
+    private val db: RunaDatabase,
 ) : TransactionRunner {
     override suspend fun <T> invoke(block: suspend () -> T): T = db.withTransaction(block)
 }

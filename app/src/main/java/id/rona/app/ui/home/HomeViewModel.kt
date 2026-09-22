@@ -8,6 +8,12 @@ import id.rona.app.data.db.dao.SymptomLogDao
 import id.rona.app.data.repository.PeriodRecordRepository
 import id.rona.app.domain.engine.CycleEngine
 import id.rona.app.domain.engine.CyclePrediction
+import id.rona.app.domain.engine.FertilityEstimator
+import id.rona.app.domain.engine.FertilityWindow
+import id.rona.app.domain.engine.phaseNameFor
+import id.rona.app.domain.insights.CycleEducationProvider
+import id.rona.app.domain.insights.CycleEducationTopic
+import id.rona.app.domain.insights.InsightMaturityLevel
 import id.rona.app.domain.insights.ProgressiveInsights
 import id.rona.app.domain.insights.ProgressiveInsightsGenerator
 import id.rona.app.domain.model.PeriodRecord
@@ -34,6 +40,10 @@ data class HomeData(
     val isPeriodActive: Boolean = false,
     val latestPeriod: PeriodRecord? = null,
     val prediction: CyclePrediction? = null,
+    val daysUntilNextPeriod: Int? = null,
+    val fertilityWindow: FertilityWindow? = null,
+    val phaseName: String? = null,
+    val dailyInsight: CycleEducationTopic? = null,
     val totalPeriods: Int = 0,
     val totalLogs: Int = 0,
     val primaryInsight: ProgressiveInsights = ProgressiveInsightsGenerator.generate(emptyList(), null, 0),
@@ -100,25 +110,42 @@ class HomeViewModel @Inject constructor(
     ): HomeUiState {
         if (isEmpty()) return HomeUiState.Empty
 
+        val today = LocalDate.now()
         val starts = map { it.startDate }
         val latest = maxByOrNull { it.startDate }
-        val cycleDay = CycleEngine.cycleDayFor(LocalDate.now(), starts)
+        val cycleDay = CycleEngine.cycleDayFor(today, starts)
         val prediction = CycleEngine.predict(starts)
+        val isPeriodActive = any { it.isOngoing }
+        val primaryInsight = ProgressiveInsightsGenerator.generate(
+            periodStarts = starts,
+            cycleDay = cycleDay,
+            dailyLogCount = logCount,
+            symptomCounts = symptomCounts,
+            prediction = prediction,
+        )
+        val dailyInsight = CycleEducationProvider.phaseTopicForToday(
+            cycleDay = cycleDay,
+            cycleLengthDays = prediction?.medianCycleLengthDays,
+            maturity = primaryInsight.maturity,
+        ) ?: CycleEducationProvider.topicsForMaturity(primaryInsight.maturity)
+            .firstOrNull { it.id == "edu_cycle_basics" }
+            .takeIf { primaryInsight.maturity >= InsightMaturityLevel.LEVEL_1_SINGLE_START }
+
         return HomeUiState.Success(
             HomeData(
                 cycleDay = cycleDay,
-                isPeriodActive = any { it.isOngoing },
+                isPeriodActive = isPeriodActive,
                 latestPeriod = latest,
                 prediction = prediction,
+                daysUntilNextPeriod = prediction?.let {
+                    (it.predictedStart.toEpochDay() - today.toEpochDay()).toInt()
+                },
+                fertilityWindow = prediction?.let { FertilityEstimator.estimate(it) },
+                phaseName = phaseNameFor(isPeriodActive, cycleDay),
+                dailyInsight = dailyInsight,
                 totalPeriods = size,
                 totalLogs = logCount,
-                primaryInsight = ProgressiveInsightsGenerator.generate(
-                    periodStarts = starts,
-                    cycleDay = cycleDay,
-                    dailyLogCount = logCount,
-                    symptomCounts = symptomCounts,
-                    prediction = prediction,
-                ),
+                primaryInsight = primaryInsight,
             )
         )
     }

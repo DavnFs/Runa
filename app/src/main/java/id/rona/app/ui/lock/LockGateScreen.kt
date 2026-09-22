@@ -77,7 +77,7 @@ fun LockGateScreen(
         Spacer(Modifier.height(16.dp))
         Text(
             text = "RUNA",
-            style = id.rona.app.ui.theme.RonaWordmarkStyle,
+            style = id.rona.app.ui.theme.RunaWordmarkStyle,
             color = MaterialTheme.colorScheme.onBackground,
         )
         Spacer(Modifier.height(8.dp))

@@ -26,7 +26,7 @@ import id.rona.app.ui.theme.LocalRonaColors
  * never clip the trailing control.
  */
 @Composable
-fun RonaSettingsRow(
+fun RunaSettingsRow(
     icon: ImageVector,
     title: String,
     subtitle: String,

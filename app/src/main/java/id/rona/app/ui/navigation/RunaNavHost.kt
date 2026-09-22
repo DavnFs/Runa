@@ -24,12 +24,12 @@ import id.rona.app.ui.settings.NotificationSettingsScreen
 import id.rona.app.ui.settings.PrivacyPolicyScreen
 import id.rona.app.ui.settings.SecuritySettingsScreen
 import id.rona.app.ui.settings.SettingsScreen
-import id.rona.app.ui.theme.RonaBottomSheetShape
+import id.rona.app.ui.theme.RunaBottomSheetShape
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RonaNavHost() {
+fun RunaNavHost() {
     val navController = rememberNavController()
     // null == sheet closed; non-null epochDay == sheet open for that calendar day.
     var guidedLogDateEpochDay by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -41,10 +41,10 @@ fun RonaNavHost() {
     NavHost(
         navController = navController,
         startDestination = Onboarding,
-        enterTransition = { id.rona.app.ui.theme.RonaMotion.NavPushEnter },
-        exitTransition = { id.rona.app.ui.theme.RonaMotion.NavPushExit },
-        popEnterTransition = { id.rona.app.ui.theme.RonaMotion.NavPopEnter },
-        popExitTransition = { id.rona.app.ui.theme.RonaMotion.NavPopExit },
+        enterTransition = { id.rona.app.ui.theme.RunaMotion.NavPushEnter },
+        exitTransition = { id.rona.app.ui.theme.RunaMotion.NavPushExit },
+        popEnterTransition = { id.rona.app.ui.theme.RunaMotion.NavPopEnter },
+        popExitTransition = { id.rona.app.ui.theme.RunaMotion.NavPopExit },
     ) {
         composable<Onboarding> {
             OnboardingScreen(onFinished = {
@@ -95,7 +95,7 @@ fun RonaNavHost() {
         ModalBottomSheet(
             onDismissRequest = { guidedLogDateEpochDay = null },
             sheetState = sheetState,
-            shape = RonaBottomSheetShape,
+            shape = RunaBottomSheetShape,
         ) {
             GuidedCheckInSheet(
                 date = sheetDate,
@@ -116,7 +116,7 @@ fun RonaNavHost() {
         ModalBottomSheet(
             onDismissRequest = { showFullLogSheet = false },
             sheetState = fullSheetState,
-            shape = RonaBottomSheetShape,
+            shape = RunaBottomSheetShape,
         ) {
             FullLogEditorSheet(
                 date = fullLogDateEpochDay?.let { LocalDate.ofEpochDay(it) },

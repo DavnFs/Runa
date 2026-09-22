@@ -51,10 +51,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rona.app.domain.model.OverlapResolutionStrategy
 import id.rona.app.domain.model.PeriodValidationResult
-import id.rona.app.ui.components.RonaPrimaryButton
-import id.rona.app.ui.components.RonaSecondaryButton
+import id.rona.app.ui.components.RunaPrimaryButton
+import id.rona.app.ui.components.RunaSecondaryButton
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaPillShape
+import id.rona.app.ui.theme.RunaPillShape
 import id.rona.app.util.DatePickerDates
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -197,7 +197,7 @@ fun PeriodEditBottomSheet(
 
         // Action Buttons
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            RonaPrimaryButton(
+            RunaPrimaryButton(
                 text = if (uiState.isLoading) "Menyimpan…" else "Simpan perubahan",
                 onClick = viewModel::requestSave,
                 enabled = !uiState.isLoading,
@@ -211,7 +211,7 @@ fun PeriodEditBottomSheet(
                 if (isEditMode) {
                     OutlinedButton(
                         onClick = viewModel::showDeleteDialog,
-                        shape = RonaPillShape,
+                        shape = RunaPillShape,
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error,
                         ),
@@ -228,7 +228,7 @@ fun PeriodEditBottomSheet(
                     }
                 }
 
-                RonaSecondaryButton(
+                RunaSecondaryButton(
                     text = "Batal",
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f),

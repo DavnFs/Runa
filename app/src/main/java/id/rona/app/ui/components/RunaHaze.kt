@@ -16,7 +16,7 @@ import dev.chrisbanes.haze.hazeEffect
 /**
  * HazeState shared across the main shell so the top bar and floating dock can
  * blur the page content scrolling behind them. Null in previews/screens that
- * have no glass source registered — [Modifier.ronaGlass] then falls back to a
+ * have no glass source registered — [Modifier.runaGlass] then falls back to a
  * plain translucent fill.
  */
 val LocalRonaHazeState = staticCompositionLocalOf<HazeState?> { null }
@@ -28,7 +28,7 @@ val LocalRonaHazeState = staticCompositionLocalOf<HazeState?> { null }
  * scrim).
  */
 @Composable
-fun Modifier.ronaGlass(
+fun Modifier.runaGlass(
     shape: Shape,
     backgroundColor: Color,
     tint: Color = Color.Unspecified,

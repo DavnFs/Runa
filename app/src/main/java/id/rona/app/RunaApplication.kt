@@ -8,7 +8,7 @@ import id.rona.app.data.crypto.SqlCipherNativeLoader
 import javax.inject.Inject
 
 @HiltAndroidApp
-class RonaApplication : Application(), Configuration.Provider {
+class RunaApplication : Application(), Configuration.Provider {
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory

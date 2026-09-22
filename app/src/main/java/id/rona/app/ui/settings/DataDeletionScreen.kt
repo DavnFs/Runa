@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rona.app.data.repository.DataCategory
-import id.rona.app.ui.components.RonaJournalTextField
-import id.rona.app.ui.components.RonaSecondaryButton
+import id.rona.app.ui.components.RunaJournalTextField
+import id.rona.app.ui.components.RunaSecondaryButton
 import id.rona.app.ui.theme.LocalRonaColors
 
 @Composable
@@ -53,19 +53,19 @@ fun DataDeletionScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        RonaSecondaryButton(
+        RunaSecondaryButton(
             text = "Hapus catatan harian",
             onClick = { viewModel.deleteCategory(DataCategory.DAILY_LOGS) },
             enabled = !uiState.isDeleting,
             modifier = Modifier.fillMaxWidth(),
         )
-        RonaSecondaryButton(
+        RunaSecondaryButton(
             text = "Hapus riwayat periode",
             onClick = { viewModel.deleteCategory(DataCategory.PERIOD_HISTORY) },
             enabled = !uiState.isDeleting,
             modifier = Modifier.fillMaxWidth(),
         )
-        RonaSecondaryButton(
+        RunaSecondaryButton(
             text = "Reset pengaturan",
             onClick = { viewModel.deleteCategory(DataCategory.SETTINGS) },
             enabled = !uiState.isDeleting,
@@ -89,7 +89,7 @@ fun DataDeletionScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                RonaJournalTextField(
+                RunaJournalTextField(
                     value = uiState.confirmationText,
                     onValueChange = viewModel::setConfirmationText,
                     placeholder = "Ketik HAPUS untuk mengonfirmasi",

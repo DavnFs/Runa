@@ -9,21 +9,21 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Adaptive helpers so Rona holds together across phone sizes, landscape, and
+ * Adaptive helpers so Runa holds together across phone sizes, landscape, and
  * wide screens without a full WindowSizeClass treatment.
  */
 
 /** Widest a page column may grow; content is centred beyond this (tablets). */
-const val RonaPageMaxWidthDp = 480
+const val RunaPageMaxWidthDp = 480
 
 /**
- * Caps page content at [RonaPageMaxWidthDp]. Pair with a parent
+ * Caps page content at [RunaPageMaxWidthDp]. Pair with a parent
  * `Box(contentAlignment = Alignment.TopCenter)` so wide screens centre the page
  * instead of stretching it edge-to-edge. The cap sits outermost so the
  * composable itself reports the capped width and the parent can centre it.
  */
-fun Modifier.ronaPageContainer(): Modifier =
-    widthIn(max = RonaPageMaxWidthDp.dp).fillMaxWidth()
+fun Modifier.runaPageContainer(): Modifier =
+    widthIn(max = RunaPageMaxWidthDp.dp).fillMaxWidth()
 
 /**
  * Hero circle diameter that fits the actual screen: capped by [cap], by 72% of
@@ -31,7 +31,7 @@ fun Modifier.ronaPageContainer(): Modifier =
  * the hero instead of crowding the content around it.
  */
 @Composable
-fun ronaHeroDiameter(cap: Dp): Dp {
+fun runaHeroDiameter(cap: Dp): Dp {
     val config = LocalConfiguration.current
     val byWidth = config.screenWidthDp.dp * 0.72f
     val byHeight = config.screenHeightDp.dp * 0.40f

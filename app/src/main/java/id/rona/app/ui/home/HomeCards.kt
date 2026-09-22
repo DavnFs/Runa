@@ -29,8 +29,9 @@ import id.rona.app.domain.engine.FertilityEstimator
 import id.rona.app.domain.insights.CycleEducationTopic
 import id.rona.app.domain.model.Confidence
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaMicroLabelStyle
-import id.rona.app.ui.theme.RonaPillShape
+import id.rona.app.ui.theme.RunaMicroLabelStyle
+import id.rona.app.ui.theme.RunaPillShape
+import id.rona.app.ui.theme.RunaSpacing
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -43,7 +44,7 @@ private val fullDate = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale("id", 
  * tipografi, tanpa kotak bersarang dan tanpa teks yang membungkus sempit).
  */
 @Composable
-fun RonaTodayCard(
+fun RunaTodayCard(
     homeData: HomeData,
     modifier: Modifier = Modifier,
 ) {
@@ -57,7 +58,7 @@ fun RonaTodayCard(
         color = colors.surfaceSoft,
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(RunaSpacing.cardPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
@@ -70,7 +71,7 @@ fun RonaTodayCard(
                 ) {
                     Text(
                         text = "HARI INI",
-                        style = RonaMicroLabelStyle,
+                        style = RunaMicroLabelStyle,
                         color = colors.cyclePrimary,
                     )
                     Text(
@@ -95,7 +96,7 @@ fun RonaTodayCard(
             if (prediction != null) {
                 Text(
                     text = "PERKIRAAN HAID BERIKUTNYA",
-                    style = RonaMicroLabelStyle,
+                    style = RunaMicroLabelStyle,
                     color = colors.inkTertiary,
                 )
                 Row(
@@ -185,7 +186,7 @@ private fun CycleDayRing(
             )
             Text(
                 text = "HARI KE",
-                style = RonaMicroLabelStyle,
+                style = RunaMicroLabelStyle,
                 color = colors.inkTertiary,
             )
         }
@@ -196,7 +197,7 @@ private fun CycleDayRing(
  * Kartu wawasan harian: satu topik edukasi sesuai fase hari ini.
  */
 @Composable
-fun RonaDailyInsightCard(
+fun RunaDailyInsightCard(
     topic: CycleEducationTopic,
     onOpenInsights: () -> Unit,
     modifier: Modifier = Modifier,
@@ -209,12 +210,12 @@ fun RonaDailyInsightCard(
         color = colors.surfaceSoft,
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(RunaSpacing.cardPadding),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = "WAWASAN HARIANMU",
-                style = RonaMicroLabelStyle,
+                style = RunaMicroLabelStyle,
                 color = colors.cyclePrimary,
             )
             Text(
@@ -249,7 +250,7 @@ private fun ConfidencePill(confidence: Confidence) {
         Confidence.LOW -> "Estimasi awal"
     }
     Surface(
-        shape = RonaPillShape,
+        shape = RunaPillShape,
         color = colors.cycleContainer,
     ) {
         Text(

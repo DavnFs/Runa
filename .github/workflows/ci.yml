@@ -1,10 +1,16 @@
-name: Runa CI
+name: CI & Build
+
+# push ke main / pull request / manual -> verifikasi lalu unggah APK debug
+# yang bisa diunduh dan dipasang ke HP.
+#
+# APK diunggah di setiap run. Kalau artifact mulai menumpuk di storage,
+# turunkan retention-days atau batasi ke event tertentu.
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
     branches: [main]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,13 +20,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build, Lint & Test
+  verify:
+    name: Lint, Test & Build
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -33,70 +39,41 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      # Satu pemanggilan Gradle, bukan empat. Tiap pemanggilan terpisah
+      # membayar ulang start-up JVM + konfigurasi Gradle.
+      - name: Lint, unit test, build debug + R8 release
+        run: ./gradlew lintDebug testDebugUnitTest assembleDebug assembleRelease
 
-      - name: Run Android lint
-        run: ./gradlew lintDebug --no-daemon
-
-      - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --no-daemon
-
-      - name: Assemble debug APK
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: Assemble release APK
-        run: ./gradlew assembleRelease --no-daemon
-
-      - name: Audit failure reports for sensitive files
-        id: audit
-        if: ${{ failure() }}
-        shell: bash
+      - name: Report debug APK size and checksum
         run: |
           set -euo pipefail
 
-          if [ ! -d "app/build/reports" ]; then
-            echo "No reports directory exists; no artifact will be uploaded."
-            exit 0
-          fi
-
-          SENSITIVE_FILE="$(find app/build/reports -type f \( \
-            -name "*.db" -o \
-            -name "*.db-wal" -o \
-            -name "*.db-shm" -o \
-            -name "*.sqlite" -o \
-            -name "*.sqlcipher" -o \
-            -name "*.rona" -o \
-            -name "*.ronabackup" -o \
-            -name "*.runa-backup" -o \
-            -name "*.env" -o \
-            -name "*.jks" -o \
-            -name "*.keystore" -o \
-            -name "*.pem" -o \
-            -name "*.key" \
-          \) -print -quit)"
-
-          if [ -n "$SENSITIVE_FILE" ]; then
-            echo "::error::Sensitive file found in CI report directory: $SENSITIVE_FILE"
+          apk="$(find app/build/outputs/apk/debug -type f -name '*.apk' -print -quit)"
+          if [ -z "$apk" ]; then
+            echo "::error::Debug APK was not produced."
             exit 1
           fi
 
-          echo "Failure reports are safe to upload."
+          echo "APK: $apk"
+          ls -lh "$apk"
+          sha256sum "$apk"
 
-      - name: Upload sanitized test results
-        if: ${{ failure() && steps.audit.outcome == 'success' }}
-        uses: actions/upload-artifact@v4
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v7
         with:
-          name: unit-test-results
-          path: app/build/reports/tests/testDebugUnitTest/
-          if-no-files-found: ignore
+          name: runa-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
           retention-days: 7
 
-      - name: Upload sanitized lint report
-        if: ${{ failure() && steps.audit.outcome == 'success' }}
-        uses: actions/upload-artifact@v4
+      # Hanya saat gagal — untuk mendiagnosis, bukan untuk distribusi.
+      - name: Upload failure reports
+        if: failure()
+        uses: actions/upload-artifact@v7
         with:
-          name: lint-report
-          path: app/build/reports/lint-results-debug.html
+          name: failure-reports
+          path: |
+            app/build/reports/tests/testDebugUnitTest/
+            app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
           retention-days: 7

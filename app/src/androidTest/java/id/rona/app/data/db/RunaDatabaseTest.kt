@@ -39,14 +39,14 @@ import org.junit.runner.RunWith
 import java.io.File
 
 @RunWith(AndroidJUnit4::class)
-class RonaDatabaseTest {
+class RunaDatabaseTest {
 
-    private lateinit var db: RonaDatabase
+    private lateinit var db: RunaDatabase
 
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, RonaDatabase::class.java)
+        db = Room.inMemoryDatabaseBuilder(context, RunaDatabase::class.java)
             .allowMainThreadQueries()
             .build()
     }
@@ -245,14 +245,14 @@ class RonaDatabaseTest {
     @Test
     fun plaintextSensitiveStringsNeverTouchDisk_whenEncryptedFactoryUsed() {
         // In-memory DB cannot prove disk encryption; this test guards the real contract:
-        // a real RonaDatabase.Factory uses SQLCipher SupportFactory. Here we verify the
+        // a real RunaDatabase.Factory uses SQLCipher SupportFactory. Here we verify the
         // file-based DB cannot be opened without a passphrase once created with one.
         val context = ApplicationProvider.getApplicationContext<Context>()
         val dbFile = File(context.cacheDir, "test-encrypted.db")
         dbFile.delete()
         val passphrase = ByteArray(32) { 7 }
         val factory = net.zetetic.database.sqlcipher.SupportOpenHelperFactory(passphrase)
-        val diskDb = Room.databaseBuilder(context, RonaDatabase::class.java, dbFile.name)
+        val diskDb = Room.databaseBuilder(context, RunaDatabase::class.java, dbFile.name)
             .openHelperFactory(factory)
             .allowMainThreadQueries()
             .build()

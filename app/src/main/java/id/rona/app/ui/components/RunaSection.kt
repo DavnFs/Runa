@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 
 /** Consistent section heading: optional title + trailing action + content. */
 @Composable
-fun RonaSectionHeader(
+fun RunaSectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     supporting: String? = null,
@@ -47,7 +47,7 @@ fun RonaSectionHeader(
 
 /** Section wrapper: header + spacing + content. */
 @Composable
-fun RonaSection(
+fun RunaSection(
     title: String,
     modifier: Modifier = Modifier,
     supporting: String? = null,
@@ -57,7 +57,7 @@ fun RonaSection(
     Column(
         modifier.fillMaxWidth(),
     ) {
-        RonaSectionHeader(title = title, supporting = supporting, trailing = trailing)
+        RunaSectionHeader(title = title, supporting = supporting, trailing = trailing)
         Spacer(Modifier.height(12.dp))
         Column(content = content)
     }

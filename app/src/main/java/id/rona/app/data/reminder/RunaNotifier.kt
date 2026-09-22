@@ -8,7 +8,7 @@ import androidx.core.app.NotificationCompat
 import id.rona.app.domain.model.PrivacyMode
 import id.rona.app.R
 
-object RonaNotifier {
+object RunaNotifier {
 
     const val CHANNEL_PERIOD = "rona_reminder_period"
     const val CHANNEL_DAILY_LOG = "rona_reminder_daily_log"

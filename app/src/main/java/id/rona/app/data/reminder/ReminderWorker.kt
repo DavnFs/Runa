@@ -35,7 +35,7 @@ class ReminderWorker @AssistedInject constructor(
             ?: PrivacyMode.GENERIC
 
         if (reminder?.dailyLogReminderEnabled == true) {
-            RonaNotifier.showDailyLogReminder(applicationContext, privacy)
+            RunaNotifier.showDailyLogReminder(applicationContext, privacy)
         }
 
         if (reminder?.periodReminderEnabled == true) {
@@ -46,7 +46,7 @@ class ReminderWorker @AssistedInject constructor(
                     java.time.LocalDate.ofEpochDay(prediction.predictedStartEpochDay),
                 )
                 if (daysUntil >= 0 && daysUntil <= reminder.periodReminderDaysBefore) {
-                    RonaNotifier.showPeriodReminder(
+                    RunaNotifier.showPeriodReminder(
                         context = applicationContext,
                         privacyMode = privacy,
                         daysUntil = daysUntil.toInt(),

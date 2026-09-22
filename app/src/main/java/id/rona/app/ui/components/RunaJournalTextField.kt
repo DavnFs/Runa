@@ -15,14 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaTheme
 
 /**
  * Soft journal-like note field — not a generic outlined TextField.
- * Uses Rona surfaceSoft with a subtle border and relaxed inner padding.
+ * Uses Runa surfaceSoft with a subtle border and relaxed inner padding.
  */
 @Composable
-fun RonaJournalTextField(
+fun RunaJournalTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -65,11 +65,11 @@ fun RonaJournalTextField(
 
 // ───────────────────────── Previews ─────────────────────────
 
-@Preview(name = "RonaJournalTextField — Empty Light", showBackground = true)
+@Preview(name = "RunaJournalTextField — Empty Light", showBackground = true)
 @Composable
-private fun RonaJournalTextFieldEmptyPreview() {
-    RonaTheme {
-        RonaJournalTextField(
+private fun RunaJournalTextFieldEmptyPreview() {
+    RunaTheme {
+        RunaJournalTextField(
             value = "",
             onValueChange = {},
             placeholder = "Tuliskan apapun yang kamu rasakan hari ini...",
@@ -77,11 +77,11 @@ private fun RonaJournalTextFieldEmptyPreview() {
     }
 }
 
-@Preview(name = "RonaJournalTextField — Filled Light", showBackground = true)
+@Preview(name = "RunaJournalTextField — Filled Light", showBackground = true)
 @Composable
-private fun RonaJournalTextFieldFilledPreview() {
-    RonaTheme {
-        RonaJournalTextField(
+private fun RunaJournalTextFieldFilledPreview() {
+    RunaTheme {
+        RunaJournalTextField(
             value = "Merasa agak lelah di sore hari, perut sedikit kembung setelah makan siang.",
             onValueChange = {},
         )

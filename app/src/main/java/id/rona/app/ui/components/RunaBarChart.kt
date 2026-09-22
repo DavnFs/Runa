@@ -31,7 +31,7 @@ import kotlin.math.max
  * median is shown as a dashed reference line.
  */
 @Composable
-fun RonaBarChart(
+fun RunaBarChart(
     values: List<Int>,
     labels: List<String>,
     modifier: Modifier = Modifier,

@@ -27,11 +27,11 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import id.rona.app.domain.model.ThemeMode
 import id.rona.app.ui.components.LocalRonaHazeState
-import id.rona.app.ui.components.RonaDockDestination
-import id.rona.app.ui.components.RonaFloatingNavDock
-import id.rona.app.ui.components.RonaTopBar
+import id.rona.app.ui.components.RunaDockDestination
+import id.rona.app.ui.components.RunaFloatingNavDock
+import id.rona.app.ui.components.RunaTopBar
 import id.rona.app.ui.home.HomeEmptyContent
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaTheme
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -93,13 +93,13 @@ class MainShellProbeTest {
     fun probeScaffoldWithDockAndHaze() {
         val bitmap = render(360, 780) {
             val haze = remember { HazeState() }
-            RonaTheme(themeMode = ThemeMode.LIGHT) {
+            RunaTheme(themeMode = ThemeMode.LIGHT) {
                 CompositionLocalProvider(LocalRonaHazeState provides haze) {
                     Scaffold(
                         containerColor = Color.White,
                         bottomBar = {
-                            RonaFloatingNavDock(
-                                selected = RonaDockDestination.HOME,
+                            RunaFloatingNavDock(
+                                selected = RunaDockDestination.HOME,
                                 onDestinationSelected = {},
                             )
                         },
@@ -130,12 +130,12 @@ class MainShellProbeTest {
     @Test
     fun probeScaffoldWithDockNoHaze() {
         val bitmap = render(360, 780) {
-            RonaTheme(themeMode = ThemeMode.LIGHT) {
+            RunaTheme(themeMode = ThemeMode.LIGHT) {
                 Scaffold(
                     containerColor = Color.White,
                     bottomBar = {
-                        RonaFloatingNavDock(
-                            selected = RonaDockDestination.HOME,
+                        RunaFloatingNavDock(
+                            selected = RunaDockDestination.HOME,
                             onDestinationSelected = {},
                         )
                     },
@@ -161,13 +161,13 @@ class MainShellProbeTest {
     fun probeMainScreenStructure() {
         val bitmap = render(360, 780) {
             val haze = remember { HazeState() }
-            RonaTheme(themeMode = ThemeMode.LIGHT) {
+            RunaTheme(themeMode = ThemeMode.LIGHT) {
                 CompositionLocalProvider(LocalRonaHazeState provides haze) {
                     Scaffold(
                         containerColor = Color.White,
                         bottomBar = {
-                            RonaFloatingNavDock(
-                                selected = RonaDockDestination.HOME,
+                            RunaFloatingNavDock(
+                                selected = RunaDockDestination.HOME,
                                 onDestinationSelected = {},
                             )
                         },
@@ -179,7 +179,7 @@ class MainShellProbeTest {
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState()),
                         ) {
-                            RonaTopBar(onOpenSettings = {})
+                            RunaTopBar(onOpenSettings = {})
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()

@@ -17,7 +17,7 @@ import id.rona.app.ui.theme.LocalRonaColors
  * wordmark would otherwise shout — the top bar.
  */
 @Composable
-fun RonaLogoMark(
+fun RunaLogoMark(
     modifier: Modifier = Modifier,
     size: Dp = 30.dp,
     contentDescription: String? = "Runa",

@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 
 data class InsightsUiState(
@@ -21,6 +23,8 @@ data class InsightsUiState(
     val progressiveInsights: ProgressiveInsights = ProgressiveInsightsGenerator.generate(emptyList(), null, 0),
     val cycleDay: Int? = null,
     val medianCycleLength: Int? = null,
+    val cycleLengths: List<Int> = emptyList(),
+    val cycleLengthLabels: List<String> = emptyList(),
 )
 
 @HiltViewModel
@@ -29,6 +33,8 @@ class InsightsViewModel @Inject constructor(
     private val dailyLogDao: DailyLogDao,
     private val symptomLogDao: SymptomLogDao,
 ) : ViewModel() {
+
+    private val monthFormat = DateTimeFormatter.ofPattern("MMM", Locale("id", "ID"))
 
     val uiState: StateFlow<InsightsUiState> = combine(
         periodRecordRepository.observeAllPeriods(),
@@ -47,12 +53,15 @@ class InsightsViewModel @Inject constructor(
             dailyLogCount = logs.size,
             symptomCounts = symptomCounts,
         )
+        val intervals = CycleEngine.cycleLengths(starts).takeLast(12)
 
         InsightsUiState(
             isLoading = false,
             progressiveInsights = progressive,
             cycleDay = cycleDay,
             medianCycleLength = medianCycleLength,
+            cycleLengths = intervals.map { it.lengthDays },
+            cycleLengthLabels = intervals.map { it.startOfCurrent.format(monthFormat) },
         )
     }.stateIn(
         scope = viewModelScope,

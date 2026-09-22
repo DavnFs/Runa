@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import id.rona.app.ui.theme.LocalRonaColors
 
-import id.rona.app.ui.theme.ronaDynamicDockClearance
+import id.rona.app.ui.theme.runaDynamicDockClearance
 
 /**
  * Standard Runa page shell: warm canvas background, consistent horizontal
@@ -33,9 +33,9 @@ import id.rona.app.ui.theme.ronaDynamicDockClearance
  *   forms stay reachable above the keyboard.
  */
 @Composable
-fun RonaPageScaffold(
+fun RunaPageScaffold(
     modifier: Modifier = Modifier,
-    dockClearance: Dp = ronaDynamicDockClearance(),
+    dockClearance: Dp = runaDynamicDockClearance(),
     imeAware: Boolean = false,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     content: @Composable ColumnScope.() -> Unit,
@@ -49,6 +49,7 @@ fun RonaPageScaffold(
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .runaPageContainer()
                 .padding(innerPadding)
                 .padding(contentPadding)
                 .padding(horizontal = 20.dp)

@@ -20,7 +20,7 @@ import id.rona.app.ui.theme.LocalRonaColors
 
 /** Warm, calm empty state with an optional primary CTA. */
 @Composable
-fun RonaEmptyState(
+fun RunaEmptyState(
     title: String,
     message: String,
     modifier: Modifier = Modifier,
@@ -66,7 +66,7 @@ fun RonaEmptyState(
 
 /** Friendly error state with a retry action. */
 @Composable
-fun RonaErrorState(
+fun RunaErrorState(
     message: String,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit,
@@ -93,7 +93,7 @@ fun RonaErrorState(
 
 /** Minimal soft loading placeholder — never a bare full-screen spinner. */
 @Composable
-fun RonaLoadingSkeleton(
+fun RunaLoadingSkeleton(
     modifier: Modifier = Modifier,
     message: String = "Memuat…",
 ) {

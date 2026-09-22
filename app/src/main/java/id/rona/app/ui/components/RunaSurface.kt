@@ -13,18 +13,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaShapes
+import id.rona.app.ui.theme.RunaShapes
 
 /**
  * Tonal, calm surface for meaningful content groups — not for every UI block.
- * Uses Rona semantic colors (surfaceSoft / elevatedSurface) with a soft border.
+ * Uses Runa semantic colors (surfaceSoft / elevatedSurface) with a soft border.
  */
 @Composable
-fun RonaTonalSurface(
+fun RunaTonalSurface(
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     borderColor: Color = LocalRonaColors.current.dividerSubtle,
-    shape: CornerBasedShape = RonaShapes.medium,
+    shape: CornerBasedShape = RunaShapes.medium,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
@@ -44,10 +44,10 @@ fun RonaTonalSurface(
 
 /** Elevated surface for floating/docked elements (nav dock, FAB-like actions). */
 @Composable
-fun RonaElevatedSurface(
+fun RunaElevatedSurface(
     modifier: Modifier = Modifier,
     containerColor: Color = LocalRonaColors.current.elevatedSurface,
-    shape: CornerBasedShape = RonaShapes.large,
+    shape: CornerBasedShape = RunaShapes.large,
     borderColor: Color = LocalRonaColors.current.dividerSubtle,
     content: @Composable ColumnScope.() -> Unit,
 ) {

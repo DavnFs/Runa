@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rona.app.domain.model.ThemeMode
-import id.rona.app.ui.components.RonaSelectableChip
+import id.rona.app.ui.components.RunaSelectableChip
 import id.rona.app.ui.theme.LocalRonaColors
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -59,7 +59,7 @@ fun AppearanceSettingsScreen(
                 ThemeMode.LIGHT to "Terang",
                 ThemeMode.DARK to "Gelap",
             ).forEach { (mode, label) ->
-                RonaSelectableChip(
+                RunaSelectableChip(
                     label = label,
                     selected = uiState.themeMode == mode,
                     onClick = { viewModel.setThemeMode(mode) },

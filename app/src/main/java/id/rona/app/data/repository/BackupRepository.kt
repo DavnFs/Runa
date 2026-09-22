@@ -6,7 +6,7 @@ import id.rona.app.data.backup.BackupCodec
 import id.rona.app.data.backup.BackupPayload
 import id.rona.app.data.backup.toBackup
 import id.rona.app.data.backup.toEntity
-import id.rona.app.data.db.RonaDatabase
+import id.rona.app.data.db.RunaDatabase
 import id.rona.app.data.db.dao.DailyLogDao
 import id.rona.app.data.db.dao.ExportMetadataDao
 import id.rona.app.data.db.dao.PeriodRecordDao
@@ -32,7 +32,7 @@ import javax.inject.Singleton
 
 @Singleton
 class BackupRepository @Inject constructor(
-    private val db: RonaDatabase,
+    private val db: RunaDatabase,
     private val profileDao: ProfileDao,
     private val periodRecordDao: PeriodRecordDao,
     private val dailyLogDao: DailyLogDao,

@@ -8,9 +8,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /*
- * Rona spacing scale. Screens use these tokens instead of raw dp.
+ * Runa spacing scale. Screens use these tokens instead of raw dp.
  */
-object RonaSpacing {
+object RunaSpacing {
     val XS = 4.dp
     val S = 8.dp
     val M = 12.dp
@@ -20,7 +20,17 @@ object RonaSpacing {
     val XXXL = 32.dp
     val HUGE = 40.dp
 
+    /**
+     * The single page margin. Every screen and the top bar share it so their
+     * content aligns on one vertical line down the whole app.
+     */
     val screenHorizontal = 20.dp
+
+    /** Padding inside a card, so nested content sits on its own consistent inset. */
+    val cardPadding = 16.dp
+
+    /** Vertical gap between stacked cards. */
+    val cardGap = 16.dp
     val topContent = 16.dp
     val dockVisualHeight = 64.dp
     val dockBottomMargin = 12.dp
@@ -28,21 +38,21 @@ object RonaSpacing {
 }
 
 /** Standard horizontal page padding on phones. */
-val RonaPageHorizontalPadding = RonaSpacing.screenHorizontal
+val RunaPageHorizontalPadding = RunaSpacing.screenHorizontal
 
 /** Standard vertical page padding. */
-val RonaPageVerticalPadding = RonaSpacing.XL
+val RunaPageVerticalPadding = RunaSpacing.XL
 
 /**
  * Dynamic dock clearance calculation.
  * Accounts for visual dock height + bottom margin + navigationBars insets + scroll safety.
  */
 @Composable
-fun ronaDynamicDockClearance(
-    additionalPadding: Dp = RonaSpacing.dockScrollSafety
+fun runaDynamicDockClearance(
+    additionalPadding: Dp = RunaSpacing.dockScrollSafety
 ): Dp {
     val navBarsInset = WindowInsets.navigationBars
     val density = LocalDensity.current
     val navBarBottomDp = with(density) { navBarsInset.getBottom(density).toDp() }
-    return RonaSpacing.dockVisualHeight + RonaSpacing.dockBottomMargin + navBarBottomDp + additionalPadding
+    return RunaSpacing.dockVisualHeight + RunaSpacing.dockBottomMargin + navBarBottomDp + additionalPadding
 }

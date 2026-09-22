@@ -46,7 +46,7 @@ import javax.inject.Singleton
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
-abstract class RonaDatabase : RoomDatabase() {
+abstract class RunaDatabase : RoomDatabase() {
 
     abstract fun profileDao(): ProfileDao
     abstract fun periodRecordDao(): PeriodRecordDao
@@ -61,13 +61,13 @@ abstract class RonaDatabase : RoomDatabase() {
     class Factory @Inject constructor(
         private val cryptoManager: CryptoManager,
     ) {
-        fun create(context: Context): RonaDatabase {
+        fun create(context: Context): RunaDatabase {
             // Native core must be loaded before SupportOpenHelperFactory builds
             // the SQLCipher connection. Idempotent; also called at app startup.
             id.rona.app.data.crypto.SqlCipherNativeLoader.load()
             val passphrase = cryptoManager.getOrCreateDbPassphrase()
             val factory = SupportOpenHelperFactory(passphrase)
-            return Room.databaseBuilder(context, RonaDatabase::class.java, DB_NAME)
+            return Room.databaseBuilder(context, RunaDatabase::class.java, DB_NAME)
                 .openHelperFactory(factory)
                 // Destructive migration is forbidden by design (see docs/PLAN.md §7).
                 // .addMigrations(...) appended here when schema version bumps.

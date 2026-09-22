@@ -44,15 +44,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import id.rona.app.ui.components.RonaLoadingSkeleton
+import id.rona.app.ui.components.RunaLoadingSkeleton
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaBottomSheetShape
+import id.rona.app.ui.theme.RunaBottomSheetShape
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-import id.rona.app.ui.components.RonaTopBar
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.components.RunaTopBar
+import id.rona.app.ui.theme.RunaTheme
 
 private val weekdayLabels = calendarWeekdayLabelsMonFirst
 
@@ -68,7 +68,7 @@ fun CalendarScreen(
     val colors = LocalRonaColors.current
 
     if (uiState.isLoading) {
-        RonaLoadingSkeleton(modifier = modifier.fillMaxSize(), message = "Memuat kalender…")
+        RunaLoadingSkeleton(modifier = modifier.fillMaxSize(), message = "Memuat kalender…")
         return
     }
 
@@ -76,7 +76,7 @@ fun CalendarScreen(
         modifier = modifier
             .fillMaxSize(),
     ) {
-        RonaTopBar(
+        RunaTopBar(
             onOpenSettings = onOpenSettings,
         )
 
@@ -139,7 +139,7 @@ fun CalendarScreen(
             ModalBottomSheet(
                 onDismissRequest = viewModel::dismissDayDetail,
                 sheetState = sheetState,
-                shape = RonaBottomSheetShape,
+                shape = RunaBottomSheetShape,
             ) {
                 DayDetailSheet(
                     day = selectedCell,
@@ -164,7 +164,7 @@ fun CalendarScreen(
         ModalBottomSheet(
             onDismissRequest = { showPeriodEditSheet = false },
             sheetState = editSheetState,
-            shape = RonaBottomSheetShape,
+            shape = RunaBottomSheetShape,
         ) {
             id.rona.app.ui.period.PeriodEditBottomSheet(
                 periodId = editingPeriodId,
@@ -449,13 +449,13 @@ private fun DayDetailSheet(
 
         // Action Buttons
         if (day.isPeriodActual) {
-            id.rona.app.ui.components.RonaPrimaryButton(
+            id.rona.app.ui.components.RunaPrimaryButton(
                 text = "Edit catatan periode",
                 onClick = { onOpenPeriodEdit(day.periodId, day.date) },
                 modifier = Modifier.fillMaxWidth(),
             )
         } else {
-            id.rona.app.ui.components.RonaSecondaryButton(
+            id.rona.app.ui.components.RunaSecondaryButton(
                 text = "+ Catat periode di tanggal ini",
                 onClick = { onOpenPeriodEdit(null, day.date) },
                 modifier = Modifier.fillMaxWidth(),
@@ -463,7 +463,7 @@ private fun DayDetailSheet(
         }
 
         if (onLogForDate != null) {
-            id.rona.app.ui.components.RonaSecondaryButton(
+            id.rona.app.ui.components.RunaSecondaryButton(
                 text = "Catat keadaan di tanggal ini",
                 onClick = { onLogForDate(day.date) },
                 modifier = Modifier.fillMaxWidth(),

@@ -84,17 +84,17 @@ import id.rona.app.domain.model.Mood
 import id.rona.app.domain.model.Severity
 import id.rona.app.domain.model.SymptomType
 import id.rona.app.domain.model.ThemeMode
-import id.rona.app.ui.components.RonaJournalTextField
-import id.rona.app.ui.components.RonaPrimaryButton
-import id.rona.app.ui.components.RonaSecondaryButton
-import id.rona.app.ui.components.RonaSection
-import id.rona.app.ui.components.RonaSelectableChip
-import id.rona.app.ui.components.RonaTextAction
+import id.rona.app.ui.components.RunaJournalTextField
+import id.rona.app.ui.components.RunaPrimaryButton
+import id.rona.app.ui.components.RunaSecondaryButton
+import id.rona.app.ui.components.RunaSection
+import id.rona.app.ui.components.RunaSelectableChip
+import id.rona.app.ui.components.RunaTextAction
 import id.rona.app.ui.nlp.NoteAnalysisResultSheet
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaMotion
-import id.rona.app.ui.theme.RonaPillShape
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaMotion
+import id.rona.app.ui.theme.RunaPillShape
+import id.rona.app.ui.theme.RunaTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -151,7 +151,7 @@ fun GuidedCheckInSheet(
     }
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
-        animationSpec = RonaMotion.appleSpring(),
+        animationSpec = RunaMotion.appleSpring(),
         label = "checkInProgress",
     )
 
@@ -239,29 +239,29 @@ fun GuidedCheckInSheet(
                         if (isForward) {
                             (slideInHorizontally(
                                 initialOffsetX = { (it * 0.22f).roundToInt() },
-                                animationSpec = RonaMotion.appleSpring(),
+                                animationSpec = RunaMotion.appleSpring(),
                             ) + fadeIn(
-                                animationSpec = tween(260, easing = RonaMotion.AppleEaseOut),
+                                animationSpec = tween(260, easing = RunaMotion.AppleEaseOut),
                             )).togetherWith(
                                 slideOutHorizontally(
                                     targetOffsetX = { (-it * 0.22f).roundToInt() },
-                                    animationSpec = RonaMotion.appleSpring(),
+                                    animationSpec = RunaMotion.appleSpring(),
                                 ) + fadeOut(
-                                    animationSpec = tween(180, easing = RonaMotion.AppleEaseIn),
+                                    animationSpec = tween(180, easing = RunaMotion.AppleEaseIn),
                                 )
                             )
                         } else {
                             (slideInHorizontally(
                                 initialOffsetX = { (-it * 0.22f).roundToInt() },
-                                animationSpec = RonaMotion.appleSpring(),
+                                animationSpec = RunaMotion.appleSpring(),
                             ) + fadeIn(
-                                animationSpec = tween(260, easing = RonaMotion.AppleEaseOut),
+                                animationSpec = tween(260, easing = RunaMotion.AppleEaseOut),
                             )).togetherWith(
                                 slideOutHorizontally(
                                     targetOffsetX = { (it * 0.22f).roundToInt() },
-                                    animationSpec = RonaMotion.appleSpring(),
+                                    animationSpec = RunaMotion.appleSpring(),
                                 ) + fadeOut(
-                                    animationSpec = tween(180, easing = RonaMotion.AppleEaseIn),
+                                    animationSpec = tween(180, easing = RunaMotion.AppleEaseIn),
                                 )
                             )
                         }
@@ -491,7 +491,7 @@ fun CardQuickEnergy(
         )
 
         Energy.entries.forEach { energy ->
-            RonaSelectableChip(
+            RunaSelectableChip(
                 label = energyLabel(energy),
                 selected = selectedEnergy == energy,
                 onClick = { onSelectEnergy(if (selectedEnergy == energy) null else energy) },
@@ -546,14 +546,14 @@ fun CardPeriodStartConfirm(
 
         Spacer(Modifier.height(24.dp))
 
-        RonaPrimaryButton(
+        RunaPrimaryButton(
             text = if (isConfirming) "Memulai…" else "Ya, mulai periode hari ini",
             onClick = onConfirm,
             enabled = !isConfirming,
             modifier = Modifier.fillMaxWidth(),
         )
 
-        RonaSecondaryButton(
+        RunaSecondaryButton(
             text = "Kembali",
             onClick = onCancel,
             modifier = Modifier.fillMaxWidth(),
@@ -576,7 +576,7 @@ private fun InitialOptionCard(
     val isPressed by interactionSource.collectIsPressedAsState()
     val pressScale by animateFloatAsState(
         targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = RonaMotion.appleBouncySpring(),
+        animationSpec = RunaMotion.appleBouncySpring(),
         label = "initialOptionScale",
     )
 
@@ -819,7 +819,7 @@ fun CardSymptomSelection(
             modifier = Modifier.fillMaxWidth(),
         ) {
             SymptomType.entries.forEach { symptom ->
-                RonaSelectableChip(
+                RunaSelectableChip(
                     label = symptomLabel(symptom),
                     selected = selectedSymptoms.contains(symptom),
                     onClick = { onToggleSymptom(symptom) },
@@ -961,13 +961,13 @@ fun CardEnergySelection(
         )
 
         // ——— Energi ———
-        RonaSection(title = "Tingkat Energi", supporting = "Seberapa bertenaga tubuhmu hari ini?") {
+        RunaSection(title = "Tingkat Energi", supporting = "Seberapa bertenaga tubuhmu hari ini?") {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Energy.entries.forEach { energy ->
-                    RonaSelectableChip(
+                    RunaSelectableChip(
                         label = energyLabel(energy),
                         selected = selectedEnergy == energy,
                         onClick = { onSelectEnergy(if (selectedEnergy == energy) null else energy) },
@@ -977,13 +977,13 @@ fun CardEnergySelection(
         }
 
         // ——— Mood ———
-        RonaSection(title = "Suasana Hati (Mood)", supporting = "Bagaimana perasaan atau suasana hatimu?") {
+        RunaSection(title = "Suasana Hati (Mood)", supporting = "Bagaimana perasaan atau suasana hatimu?") {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Mood.entries.forEach { mood ->
-                    RonaSelectableChip(
+                    RunaSelectableChip(
                         label = moodLabel(mood),
                         selected = selectedMood == mood,
                         onClick = { onSelectMood(if (selectedMood == mood) null else mood) },
@@ -1038,7 +1038,7 @@ fun CardNoteInput(
             ),
         )
 
-        RonaJournalTextField(
+        RunaJournalTextField(
             value = note,
             onValueChange = onNoteChange,
             placeholder = "Misalnya: Merasa sedikit kram setelah berolahraga, minum teh hangat...",
@@ -1049,7 +1049,7 @@ fun CardNoteInput(
         OutlinedButton(
             onClick = onRunAnalysis,
             enabled = note.isNotBlank() && !isAnalyzing,
-            shape = RonaPillShape,
+            shape = RunaPillShape,
             modifier = Modifier.fillMaxWidth(),
         ) {
             if (isAnalyzing) {
@@ -1211,14 +1211,14 @@ fun CardCheckInSummary(
 
         Spacer(Modifier.height(12.dp))
 
-        RonaPrimaryButton(
+        RunaPrimaryButton(
             text = if (isSaving) "Menyimpan…" else "Simpan Catatan",
             onClick = onSave,
             enabled = !isSaving,
             modifier = Modifier.fillMaxWidth(),
         )
 
-        RonaSecondaryButton(
+        RunaSecondaryButton(
             text = "Tambah detail di formulir lengkap",
             onClick = onOpenFullEditor,
             modifier = Modifier.fillMaxWidth(),
@@ -1294,13 +1294,13 @@ private fun CardActionFooter(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (onSkip != null) {
-                RonaSecondaryButton(
+                RunaSecondaryButton(
                     text = "Lewati",
                     onClick = onSkip,
                     modifier = Modifier.weight(1f),
                 )
             }
-            RonaPrimaryButton(
+            RunaPrimaryButton(
                 text = nextText,
                 onClick = onNext,
                 modifier = Modifier.weight(if (onSkip != null) 1f else 2f),
@@ -1338,7 +1338,7 @@ private fun DailyCheckInStep.stepOrdinal(): Int = when (this) {
 @Preview(name = "CardInitialChoice — Light", showBackground = true)
 @Composable
 private fun CardInitialChoicePreview() {
-    RonaTheme {
+    RunaTheme {
         CardInitialChoice(onSelectChoice = {}, onOpenFullEditor = {})
     }
 }
@@ -1346,7 +1346,7 @@ private fun CardInitialChoicePreview() {
 @Preview(name = "CardInitialChoice — Dark", showBackground = true)
 @Composable
 private fun CardInitialChoiceDarkPreview() {
-    RonaTheme(themeMode = ThemeMode.DARK) {
+    RunaTheme(themeMode = ThemeMode.DARK) {
         CardInitialChoice(onSelectChoice = {}, onOpenFullEditor = {})
     }
 }
@@ -1354,7 +1354,7 @@ private fun CardInitialChoiceDarkPreview() {
 @Preview(name = "CardCheckInSummary — Light", showBackground = true)
 @Composable
 private fun CardCheckInSummaryPreview() {
-    RonaTheme {
+    RunaTheme {
         CardCheckInSummary(
             uiState = LogEditorUiState(
                 flow = FlowLevel.MEDIUM,

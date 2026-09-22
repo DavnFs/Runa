@@ -14,7 +14,7 @@ object PrivacyLogger {
     fun d(tag: String, message: () -> String) {
         if (BuildConfigSafe.isDebug()) {
             try {
-                Log.d("Rona/$tag", message())
+                Log.d("Runa/$tag", message())
             } catch (_: RuntimeException) {
                 // android.util.Log is unmocked on plain JVM unit tests — never crash.
             }
@@ -25,7 +25,7 @@ object PrivacyLogger {
     fun e(tag: String, message: () -> String) {
         if (BuildConfigSafe.isDebug()) {
             try {
-                Log.e("Rona/$tag", message())
+                Log.e("Runa/$tag", message())
             } catch (_: RuntimeException) {
                 // android.util.Log is unmocked on plain JVM unit tests — never crash.
             }
@@ -36,7 +36,7 @@ object PrivacyLogger {
     fun w(tag: String, message: () -> String) {
         if (BuildConfigSafe.isDebug()) {
             try {
-                Log.w("Rona/$tag", message())
+                Log.w("Runa/$tag", message())
             } catch (_: RuntimeException) {
                 // android.util.Log is unmocked on plain JVM unit tests — never crash.
             }

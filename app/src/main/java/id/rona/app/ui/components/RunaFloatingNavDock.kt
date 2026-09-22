@@ -10,7 +10,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -57,25 +56,25 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import id.rona.app.domain.model.ThemeMode
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaPillShape
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaPillShape
+import id.rona.app.ui.theme.RunaTheme
 
 /**
- * Rona floating pill navigation dock — Glassmorphic iOS-style, icon-only, 3 destinations.
+ * Runa floating pill navigation dock — Glassmorphic iOS-style, icon-only, 3 destinations.
  *
  * Visual layout:
  * - Translucent glass surface (bright & luminous in light mode, deep & frosted in dark mode).
  * - Specular border highlight simulating iOS glass reflection.
  * - Active pill indicator moving between icons (position + width), 200ms FastOutSlowIn.
  */
-enum class RonaDockDestination(val label: String) {
+enum class RunaDockDestination(val label: String) {
     HOME("Beranda"),
     CALENDAR("Kalender"),
     INSIGHTS("Insight"),
 }
 
 /** Dock dimension tokens (semantic, single source of truth). */
-object RonaDockTokens {
+object RunaDockTokens {
     val Height = 60.dp
     val CornerRadius = 30.dp
     val HorizontalMargin = 20.dp
@@ -88,9 +87,9 @@ object RonaDockTokens {
 }
 
 @Composable
-fun RonaFloatingNavDock(
-    selected: RonaDockDestination,
-    onDestinationSelected: (RonaDockDestination) -> Unit,
+fun RunaFloatingNavDock(
+    selected: RunaDockDestination,
+    onDestinationSelected: (RunaDockDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalRonaColors.current
@@ -100,8 +99,8 @@ fun RonaFloatingNavDock(
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(
-                horizontal = RonaDockTokens.HorizontalMargin,
-                vertical = RonaDockTokens.BottomOffset,
+                horizontal = RunaDockTokens.HorizontalMargin,
+                vertical = RunaDockTokens.BottomOffset,
             ),
         contentAlignment = Alignment.Center,
     ) {
@@ -111,12 +110,12 @@ fun RonaFloatingNavDock(
                 .width(236.dp)
                 .shadow(
                     elevation = 12.dp,
-                    shape = RonaPillShape,
+                    shape = RunaPillShape,
                     ambientColor = colors.inkPrimary.copy(alpha = 0.12f),
                     spotColor = colors.inkPrimary.copy(alpha = 0.18f),
                 ),
-            shape = RonaPillShape,
-            color = colors.dockSurface,
+            shape = RunaPillShape,
+            color = Color.Transparent,
             contentColor = colors.dockContent,
             border = BorderStroke(
                 width = 1.dp,
@@ -129,10 +128,22 @@ fun RonaFloatingNavDock(
                 ),
             ),
         ) {
-            DockPillContent(
-                selected = selected,
-                onDestinationSelected = onDestinationSelected,
-            )
+            Box {
+                // Liquid glass: real backdrop blur through Haze where available.
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .runaGlass(
+                            shape = RunaPillShape,
+                            backgroundColor = colors.dockSurface,
+                            blurRadius = 24.dp,
+                        ),
+                )
+                DockPillContent(
+                    selected = selected,
+                    onDestinationSelected = onDestinationSelected,
+                )
+            }
         }
     }
 }
@@ -142,23 +153,23 @@ fun RonaFloatingNavDock(
  */
 @Composable
 private fun DockPillContent(
-    selected: RonaDockDestination,
-    onDestinationSelected: (RonaDockDestination) -> Unit,
+    selected: RunaDockDestination,
+    onDestinationSelected: (RunaDockDestination) -> Unit,
 ) {
     val colors = LocalRonaColors.current
     val density = LocalDensity.current
-    val destinations = RonaDockDestination.entries
+    val destinations = RunaDockDestination.entries
 
     // Measured geometry (px) of each item, relative to the pill's Row.
-    val itemX = remember { mutableStateMapOf<RonaDockDestination, Int>() }
-    val itemWidth = remember { mutableStateMapOf<RonaDockDestination, Int>() }
+    val itemX = remember { mutableStateMapOf<RunaDockDestination, Int>() }
+    val itemWidth = remember { mutableStateMapOf<RunaDockDestination, Int>() }
 
     val defaultWidthPx = with(density) { 56.dp.roundToPx() }
-    val spacingPx = with(density) { RonaDockTokens.ItemSpacing.roundToPx() }
+    val spacingPx = with(density) { RunaDockTokens.ItemSpacing.roundToPx() }
 
-    fun xOf(d: RonaDockDestination): Int =
+    fun xOf(d: RunaDockDestination): Int =
         itemX[d] ?: (destinations.indexOf(d) * (defaultWidthPx + spacingPx))
-    fun widthOf(d: RonaDockDestination): Int = itemWidth[d] ?: defaultWidthPx
+    fun widthOf(d: RunaDockDestination): Int = itemWidth[d] ?: defaultWidthPx
 
     val indicatorOffset by animateDpAsState(
         targetValue = with(density) { xOf(selected).toDp() },
@@ -174,7 +185,7 @@ private fun DockPillContent(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(RonaDockTokens.Height)
+            .height(RunaDockTokens.Height)
             .padding(horizontal = 6.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -185,13 +196,13 @@ private fun DockPillContent(
                     .align(Alignment.CenterStart)
                     .offset(x = indicatorOffset)
                     .width(indicatorWidth)
-                    .height(RonaDockTokens.MinTouchTarget)
+                    .height(RunaDockTokens.MinTouchTarget)
                     .shadow(
                         elevation = 4.dp,
-                        shape = RonaPillShape,
+                        shape = RunaPillShape,
                         spotColor = colors.dockSelectedContainer.copy(alpha = 0.4f),
                     ),
-                shape = RonaPillShape,
+                shape = RunaPillShape,
                 color = colors.dockSelectedContainer,
             ) {}
         }
@@ -201,7 +212,7 @@ private fun DockPillContent(
             modifier = Modifier
                 .align(Alignment.Center)
                 .fillMaxWidth(),
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(RonaDockTokens.ItemSpacing),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(RunaDockTokens.ItemSpacing),
         ) {
             destinations.forEach { destination ->
                 DockIconItem(
@@ -222,7 +233,7 @@ private fun DockPillContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DockIconItem(
-    destination: RonaDockDestination,
+    destination: RunaDockDestination,
     selected: Boolean,
     onClick: () -> Unit,
     onMeasured: (x: Int, width: Int) -> Unit,
@@ -243,11 +254,11 @@ private fun DockIconItem(
 
     Surface(
         onClick = onClick,
-        shape = RonaPillShape,
+        shape = RunaPillShape,
         color = Color.Transparent,
         contentColor = iconColor,
         modifier = modifier
-            .height(RonaDockTokens.MinTouchTarget)
+            .height(RunaDockTokens.MinTouchTarget)
             .onGloballyPositioned { coords ->
                 onMeasured(coords.positionInParent().x.roundToInt(), coords.size.width)
             }
@@ -266,7 +277,7 @@ private fun DockIconItem(
                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                 tooltip = {
                     Surface(
-                        shape = RonaPillShape,
+                        shape = RunaPillShape,
                         color = colors.dockSurface,
                         tonalElevation = 4.dp,
                         shadowElevation = 8.dp,
@@ -293,10 +304,10 @@ private fun DockIconItem(
     }
 }
 
-private fun RonaDockDestination.icon(): ImageVector = when (this) {
-    RonaDockDestination.HOME -> Icons.Rounded.Home
-    RonaDockDestination.CALENDAR -> Icons.Rounded.CalendarMonth
-    RonaDockDestination.INSIGHTS -> Icons.Rounded.BarChart
+private fun RunaDockDestination.icon(): ImageVector = when (this) {
+    RunaDockDestination.HOME -> Icons.Rounded.Home
+    RunaDockDestination.CALENDAR -> Icons.Rounded.CalendarMonth
+    RunaDockDestination.INSIGHTS -> Icons.Rounded.BarChart
 }
 
 // ───────────────────────── Previews ─────────────────────────
@@ -304,9 +315,9 @@ private fun RonaDockDestination.icon(): ImageVector = when (this) {
 @Preview(name = "Dock — Beranda selected, light", showBackground = true, widthDp = 390)
 @Composable
 private fun DockBerandaLightPreview() {
-    RonaTheme {
-        RonaFloatingNavDock(
-            selected = RonaDockDestination.HOME,
+    RunaTheme {
+        RunaFloatingNavDock(
+            selected = RunaDockDestination.HOME,
             onDestinationSelected = {},
         )
     }
@@ -315,9 +326,9 @@ private fun DockBerandaLightPreview() {
 @Preview(name = "Dock — Kalender selected, light", showBackground = true, widthDp = 390)
 @Composable
 private fun DockKalenderLightPreview() {
-    RonaTheme {
-        RonaFloatingNavDock(
-            selected = RonaDockDestination.CALENDAR,
+    RunaTheme {
+        RunaFloatingNavDock(
+            selected = RunaDockDestination.CALENDAR,
             onDestinationSelected = {},
         )
     }
@@ -326,9 +337,9 @@ private fun DockKalenderLightPreview() {
 @Preview(name = "Dock — Insight selected, light", showBackground = true, widthDp = 390)
 @Composable
 private fun DockInsightLightPreview() {
-    RonaTheme {
-        RonaFloatingNavDock(
-            selected = RonaDockDestination.INSIGHTS,
+    RunaTheme {
+        RunaFloatingNavDock(
+            selected = RunaDockDestination.INSIGHTS,
             onDestinationSelected = {},
         )
     }
@@ -342,9 +353,9 @@ private fun DockInsightLightPreview() {
 )
 @Composable
 private fun DockBerandaDarkPreview() {
-    RonaTheme(themeMode = ThemeMode.DARK) {
-        RonaFloatingNavDock(
-            selected = RonaDockDestination.HOME,
+    RunaTheme(themeMode = ThemeMode.DARK) {
+        RunaFloatingNavDock(
+            selected = RunaDockDestination.HOME,
             onDestinationSelected = {},
         )
     }
@@ -358,9 +369,9 @@ private fun DockBerandaDarkPreview() {
 )
 @Composable
 private fun DockKalenderDarkPreview() {
-    RonaTheme(themeMode = ThemeMode.DARK) {
-        RonaFloatingNavDock(
-            selected = RonaDockDestination.CALENDAR,
+    RunaTheme(themeMode = ThemeMode.DARK) {
+        RunaFloatingNavDock(
+            selected = RunaDockDestination.CALENDAR,
             onDestinationSelected = {},
         )
     }
@@ -374,9 +385,9 @@ private fun DockKalenderDarkPreview() {
 )
 @Composable
 private fun DockInsightDarkPreview() {
-    RonaTheme(themeMode = ThemeMode.DARK) {
-        RonaFloatingNavDock(
-            selected = RonaDockDestination.INSIGHTS,
+    RunaTheme(themeMode = ThemeMode.DARK) {
+        RunaFloatingNavDock(
+            selected = RunaDockDestination.INSIGHTS,
             onDestinationSelected = {},
         )
     }
@@ -385,9 +396,9 @@ private fun DockInsightDarkPreview() {
 @Preview(name = "Dock — narrow 320dp", showBackground = true, widthDp = 320)
 @Composable
 private fun DockNarrowPreview() {
-    RonaTheme {
-        RonaFloatingNavDock(
-            selected = RonaDockDestination.HOME,
+    RunaTheme {
+        RunaFloatingNavDock(
+            selected = RunaDockDestination.HOME,
             onDestinationSelected = {},
         )
     }
@@ -401,9 +412,9 @@ private fun DockNarrowPreview() {
 )
 @Composable
 private fun DockLargeFontPreview() {
-    RonaTheme {
-        RonaFloatingNavDock(
-            selected = RonaDockDestination.HOME,
+    RunaTheme {
+        RunaFloatingNavDock(
+            selected = RunaDockDestination.HOME,
             onDestinationSelected = {},
         )
     }

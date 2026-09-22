@@ -1,13 +1,13 @@
 package id.rona.app.ui.home
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,14 +23,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,13 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -59,17 +50,38 @@ import id.rona.app.R
 import id.rona.app.domain.engine.CyclePrediction
 import id.rona.app.domain.model.Confidence
 import id.rona.app.domain.model.ThemeMode
-import id.rona.app.ui.components.RonaEmptyState
-import id.rona.app.ui.components.RonaErrorState
-import id.rona.app.ui.components.RonaLoadingSkeleton
-import id.rona.app.ui.components.RonaTopBar
+import id.rona.app.ui.components.RunaEmptyState
+import id.rona.app.ui.components.RunaErrorState
+import id.rona.app.ui.components.RunaLoadingSkeleton
+import id.rona.app.ui.components.RunaTopBar
+import id.rona.app.ui.components.runaHeroDiameter
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaMotion
-import id.rona.app.ui.theme.RonaPillShape
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaMotion
+import id.rona.app.ui.theme.RunaPillShape
+import id.rona.app.ui.theme.RunaSpacing
+import id.rona.app.ui.theme.RunaTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+/**
+ * The padded, gapped column every Home state renders into. Shared with the
+ * screenshot tests so the captured layout cannot drift from the real screen —
+ * an earlier harness skipped this padding and made cards look edge-to-edge.
+ */
+@Composable
+internal fun HomeContentColumn(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = RunaSpacing.screenHorizontal, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(RunaSpacing.cardGap),
+        content = content,
+    )
+}
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -98,19 +110,14 @@ fun HomeScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        RonaTopBar(
+        RunaTopBar(
             subtitle = todayFormatted,
             onOpenSettings = onOpenSettings,
         )
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
+        HomeContentColumn {
             when (val state = uiState) {
-                is HomeUiState.Loading -> RonaLoadingSkeleton(message = "Menyiapkan halamanmu…")
+                is HomeUiState.Loading -> RunaLoadingSkeleton(message = "Menyiapkan halamanmu…")
                 is HomeUiState.Empty -> HomeEmptyContent(
                     onStartPeriod = {
                         editingPeriodId = null
@@ -118,7 +125,7 @@ fun HomeScreen(
                         showEditPeriodSheet = true
                     },
                 )
-                is HomeUiState.Error -> RonaErrorState(
+                is HomeUiState.Error -> RunaErrorState(
                     message = state.userMessage,
                     onRetry = viewModel::retry,
                 )
@@ -144,7 +151,7 @@ fun HomeScreen(
         androidx.compose.material3.ModalBottomSheet(
             onDismissRequest = { showEditPeriodSheet = false },
             sheetState = sheetState,
-            shape = id.rona.app.ui.theme.RonaBottomSheetShape,
+            shape = id.rona.app.ui.theme.RunaBottomSheetShape,
         ) {
             id.rona.app.ui.period.PeriodEditBottomSheet(
                 periodId = editingPeriodId,
@@ -165,8 +172,9 @@ fun HomeScreen(
  * - Center botanical 3-petal seed motif in solid rose (#8D4355)
  */
 @Composable
-fun RonaEmptyHeroCircle(modifier: Modifier = Modifier) {
+fun RunaEmptyHeroCircle(modifier: Modifier = Modifier) {
     val colors = LocalRonaColors.current
+    val diameter = runaHeroDiameter(236.dp)
 
     Box(
         modifier = modifier
@@ -174,7 +182,7 @@ fun RonaEmptyHeroCircle(modifier: Modifier = Modifier) {
             .padding(top = 16.dp, bottom = 20.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(modifier = Modifier.size(236.dp)) {
+        Canvas(modifier = Modifier.size(diameter)) {
             val centerOffset = Offset(size.width / 2f, size.height / 2f)
             val strokeWidthPx = 13.dp.toPx()
             val outerRadius = (size.minDimension / 2f) - (strokeWidthPx / 2f)
@@ -275,7 +283,6 @@ fun RunaPrimaryPillButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
-    val colors = LocalRonaColors.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val pressScale = if (isPressed) 0.97f else 1f
@@ -283,9 +290,9 @@ fun RunaPrimaryPillButton(
     Surface(
         onClick = onClick,
         enabled = enabled,
-        shape = RonaPillShape,
-        color = colors.cyclePrimary,
-        contentColor = Color.White,
+        shape = RunaPillShape,
+        color = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
         modifier = modifier
             .height(54.dp)
             .scale(pressScale),
@@ -300,7 +307,7 @@ fun RunaPrimaryPillButton(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.2.sp,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                 ),
             )
         }
@@ -321,7 +328,7 @@ fun HomeEmptyContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        RonaEmptyHeroCircle()
+        RunaEmptyHeroCircle()
 
         Spacer(Modifier.height(12.dp))
 
@@ -396,7 +403,7 @@ fun HomeEmptyContent(
 }
 
 @Composable
-private fun HomeSuccessContent(
+internal fun HomeSuccessContent(
     homeData: HomeData,
     onStartPeriod: () -> Unit,
     onEndPeriod: () -> Unit,
@@ -407,29 +414,21 @@ private fun HomeSuccessContent(
 ) {
     val colors = LocalRonaColors.current
 
-    // 1. Primary Action Button: Pill button matching Figma
+    // 1. Hero "Hari ini": cycle day, phase, next-period prediction, fertile window.
+    RunaTodayCard(homeData = homeData)
+
+    // 2. Primary Action Button: Pill button matching Figma
     RunaPrimaryPillButton(
         text = "Catat keadaanmu hari ini",
         onClick = onLogToday,
         modifier = Modifier.fillMaxWidth(),
     )
 
-    // 2. Hero Cycle Arc Card (Clickable to edit period)
-    RonaCycleHero(
-        homeData = homeData,
-        onEditPeriod = {
-            homeData.latestPeriod?.let {
-                onEditPeriod(it.id, it.startDate)
-            } ?: onEditPeriod(null, LocalDate.now())
-        },
-    )
-
-    // 3. One maturity-appropriate, data-backed insight.
-    homeData.primaryInsight.primaryCard?.let { insight ->
-        RonaHomeInsightCard(
-            title = insight.title,
-            text = insight.explanation ?: "Pola pada catatanmu, bukan diagnosis.",
-            onClick = onOpenInsights,
+    // 3. Daily phase-aware insight.
+    homeData.dailyInsight?.let { topic ->
+        RunaDailyInsightCard(
+            topic = topic,
+            onOpenInsights = onOpenInsights,
         )
     }
 
@@ -439,26 +438,26 @@ private fun HomeSuccessContent(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (homeData.isPeriodActive) {
-            id.rona.app.ui.components.RonaSecondaryButton(
+            id.rona.app.ui.components.RunaSecondaryButton(
                 text = "Selesaikan periode",
                 onClick = onEndPeriod,
                 modifier = Modifier.weight(1f),
             )
         } else {
-            id.rona.app.ui.components.RonaSecondaryButton(
+            id.rona.app.ui.components.RunaSecondaryButton(
                 text = "Mulai periode",
                 onClick = onStartPeriod,
                 modifier = Modifier.weight(1f),
             )
         }
         if (homeData.latestPeriod != null) {
-            id.rona.app.ui.components.RonaSecondaryButton(
+            id.rona.app.ui.components.RunaSecondaryButton(
                 text = "Edit periode",
                 onClick = { onEditPeriod(homeData.latestPeriod.id, homeData.latestPeriod.startDate) },
                 modifier = Modifier.weight(1f),
             )
         } else {
-            id.rona.app.ui.components.RonaSecondaryButton(
+            id.rona.app.ui.components.RunaSecondaryButton(
                 text = "Buka kalender",
                 onClick = onOpenCalendar,
                 modifier = Modifier.weight(1f),
@@ -492,275 +491,32 @@ private fun HomeSuccessContent(
     }
 }
 
-/**
- * Pixel-accurate hero cycle display matching Figma "Beranda (Aktif)".
- */
-@Composable
-fun RonaCycleHero(
-    homeData: HomeData,
-    modifier: Modifier = Modifier,
-    onEditPeriod: (() -> Unit)? = null,
-) {
-    val colors = LocalRonaColors.current
-    val cycleDay = homeData.cycleDay
-    val dayInCycle = (cycleDay ?: 1).coerceIn(1, 35)
-    val progress = dayInCycle / 35f
-
-    val phaseName = when {
-        homeData.isPeriodActive -> "Periode aktif"
-        cycleDay == null -> "Fase siklus"
-        cycleDay <= 5 -> "Fase menstruasi"
-        cycleDay <= 13 -> "Fase folikuler"
-        cycleDay <= 16 -> "Fase ovulasi"
-        else -> "Fase luteal"
-    }
-
-    val prediction = homeData.prediction
-    val nextPredictionRange = if (prediction != null) {
-        val startFormatted = prediction.rangeLow.format(DateTimeFormatter.ofPattern("d"))
-        val endFormatted = prediction.rangeHigh.format(DateTimeFormatter.ofPattern("d MMMM", Locale("id", "ID")))
-        "$startFormatted–$endFormatted"
-    } else {
-        "Menunggu data"
-    }
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        // Outer concentric cycle ring
-        Canvas(modifier = Modifier.size(280.dp)) {
-            val centerOffset = Offset(size.width / 2f, size.height / 2f)
-            val strokeWidthPx = 14.dp.toPx()
-            val outerRadius = (size.minDimension / 2f) - (strokeWidthPx / 2f)
-
-            // Outer ring base track
-            drawCircle(
-                color = colors.surfaceSoft,
-                radius = outerRadius,
-                center = centerOffset,
-            )
-
-            // Progress arc
-            drawArc(
-                color = colors.cyclePrimary,
-                startAngle = -90f,
-                sweepAngle = 360f * progress,
-                useCenter = false,
-                topLeft = Offset(strokeWidthPx / 2f, strokeWidthPx / 2f),
-                size = Size(size.width - strokeWidthPx, size.height - strokeWidthPx),
-                style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round),
-            )
-        }
-
-        // Inner Content
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .padding(24.dp)
-                .widthIn(max = 220.dp),
-        ) {
-            Text(
-                text = if (cycleDay != null) "HARI KE-$cycleDay" else "SIKLUS",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 12.sp,
-                    letterSpacing = 1.2.sp,
-                    color = colors.inkSecondary,
-                ),
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(Modifier.height(4.dp))
-
-            Text(
-                text = phaseName,
-                style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 28.sp,
-                    lineHeight = 34.sp,
-                    color = colors.inkPrimary,
-                ),
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(Modifier.height(2.dp))
-
-            Text(
-                text = "· perkiraan",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontSize = 14.sp,
-                    color = colors.inkSecondary,
-                ),
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(Modifier.height(14.dp))
-
-            // Sub-box "BERIKUTNYA"
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                color = Color(0xFFFBF3F4),
-                modifier = Modifier.fillMaxWidth(0.9f),
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = "BERIKUTNYA",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 11.sp,
-                            letterSpacing = 1.2.sp,
-                            color = colors.inkTertiary,
-                        ),
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = nextPredictionRange,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp,
-                            color = colors.inkPrimary,
-                        ),
-                    )
-                }
-            }
-        }
-    }
-}
-
-/**
- * Insight card on home screen with left accent bar and circular badge.
- */
-@Composable
-fun RonaHomeInsightCard(
-    title: String,
-    text: String,
-    onClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
-) {
-    val colors = LocalRonaColors.current
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier),
-        shape = MaterialTheme.shapes.medium,
-        color = colors.surfaceSoft,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            // Circular icon badge
-            Surface(
-                shape = CircleShape,
-                color = colors.cycleContainer,
-                modifier = Modifier.size(44.dp),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Rounded.Edit,
-                        contentDescription = null,
-                        tint = colors.cyclePrimary,
-                        modifier = Modifier.size(22.dp),
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = colors.inkPrimary,
-                    ),
-                )
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        color = colors.inkSecondary,
-                    ),
-                )
-                if (onClick != null) {
-                    Text(
-                        text = "Lihat insight →",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = colors.cyclePrimary,
-                        ),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun RonaInsightCard(
-    title: String,
-    text: String,
-    modifier: Modifier = Modifier,
-    supporting: String? = null,
-) {
-    val colors = LocalRonaColors.current
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = colors.surfaceSoft,
-        tonalElevation = 1.dp,
-    ) {
-        Column(Modifier.padding(20.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(6.dp))
-            Text(text, style = MaterialTheme.typography.titleLarge)
-            if (supporting != null) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    supporting,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
 // ───────────────────────── Previews ─────────────────────────
 
 @Preview(name = "Home Success — light", showBackground = true)
 @Composable
 private fun HomeSuccessLightPreview() {
-    RonaTheme {
+    RunaTheme {
+        val prediction = CyclePrediction(
+            predictedStart = LocalDate.now().plusDays(16),
+            rangeLow = LocalDate.now().plusDays(14),
+            rangeHigh = LocalDate.now().plusDays(19),
+            medianCycleLengthDays = 28,
+            meanCycleLengthDays = 28.5,
+            madDays = 1.5,
+            cycleCountUsed = 4,
+            confidence = Confidence.MEDIUM,
+        )
         HomeSuccessContent(
             homeData = HomeData(
                 cycleDay = 12,
                 isPeriodActive = false,
-                prediction = CyclePrediction(
-                    predictedStart = LocalDate.now().plusDays(16),
-                    rangeLow = LocalDate.now().plusDays(14),
-                    rangeHigh = LocalDate.now().plusDays(19),
-                    medianCycleLengthDays = 28,
-                    meanCycleLengthDays = 28.5,
-                    madDays = 1.5,
-                    cycleCountUsed = 4,
-                    confidence = Confidence.MEDIUM,
-                ),
+                prediction = prediction,
+                daysUntilNextPeriod = 16,
+                fertilityWindow = id.rona.app.domain.engine.FertilityEstimator.estimate(prediction),
+                phaseName = id.rona.app.domain.engine.phaseNameFor(false, 12),
+                dailyInsight = id.rona.app.domain.insights.CycleEducationProvider
+                    .phaseTopicForToday(12, 28, id.rona.app.domain.insights.InsightMaturityLevel.LEVEL_4_MATURE),
                 totalPeriods = 4,
                 totalLogs = 30,
             ),
@@ -784,7 +540,7 @@ private fun HomeSuccessLightPreview() {
 )
 @Composable
 private fun HomeEmptyBaselineLight360Preview() {
-    RonaTheme {
+    RunaTheme {
         HomeEmptyContent(onStartPeriod = {})
     }
 }
@@ -798,7 +554,7 @@ private fun HomeEmptyBaselineLight360Preview() {
 )
 @Composable
 private fun HomeEmptyDark360Preview() {
-    RonaTheme(themeMode = ThemeMode.DARK) {
+    RunaTheme(themeMode = ThemeMode.DARK) {
         HomeEmptyContent(onStartPeriod = {})
     }
 }
@@ -811,7 +567,7 @@ private fun HomeEmptyDark360Preview() {
 )
 @Composable
 private fun HomeEmptyNarrow320Preview() {
-    RonaTheme {
+    RunaTheme {
         HomeEmptyContent(onStartPeriod = {})
     }
 }
@@ -824,7 +580,7 @@ private fun HomeEmptyNarrow320Preview() {
 )
 @Composable
 private fun HomeEmptyTypical411Preview() {
-    RonaTheme {
+    RunaTheme {
         HomeEmptyContent(onStartPeriod = {})
     }
 }
@@ -838,7 +594,7 @@ private fun HomeEmptyTypical411Preview() {
 )
 @Composable
 private fun HomeEmptyLargeFont150Preview() {
-    RonaTheme {
+    RunaTheme {
         HomeEmptyContent(onStartPeriod = {})
     }
 }
@@ -846,7 +602,7 @@ private fun HomeEmptyLargeFont150Preview() {
 @Preview(name = "Home Error — light", showBackground = true)
 @Composable
 private fun HomeErrorLightPreview() {
-    RonaTheme {
-        RonaErrorState(message = "Datamu tidak bisa dimuat sekarang.", onRetry = {})
+    RunaTheme {
+        RunaErrorState(message = "Datamu tidak bisa dimuat sekarang.", onRetry = {})
     }
 }

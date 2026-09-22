@@ -47,10 +47,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import id.rona.app.ui.components.RonaLoadingSkeleton
+import id.rona.app.ui.components.RunaLoadingSkeleton
 import id.rona.app.ui.theme.LocalRonaColors
-import id.rona.app.ui.theme.RonaTheme
-import id.rona.app.ui.theme.RonaWordmarkStyle
+import id.rona.app.ui.theme.RunaTheme
+import id.rona.app.ui.theme.RunaWordmarkStyle
 
 @Composable
 fun SettingsScreen(
@@ -69,7 +69,7 @@ fun SettingsScreen(
     val colors = LocalRonaColors.current
 
     if (uiState.isLoading) {
-        RonaLoadingSkeleton(modifier = modifier.fillMaxSize(), message = "Memuat pengaturan…")
+        RunaLoadingSkeleton(modifier = modifier.fillMaxSize(), message = "Memuat pengaturan…")
         return
     }
 
@@ -106,7 +106,7 @@ fun SettingsScreen(
 
                 Text(
                     text = "RUNA",
-                    style = RonaWordmarkStyle,
+                    style = RunaWordmarkStyle,
                     color = colors.cyclePrimary,
                 )
             }
@@ -141,7 +141,7 @@ fun SettingsScreen(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = Color(0xFFFBF3F4),
+                        color = colors.elevatedSurface,
                         modifier = Modifier.size(44.dp),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -348,7 +348,7 @@ private fun FigmaSettingsItem(
         Icon(
             imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
             contentDescription = null,
-            tint = Color(0xFFD7C1C4),
+            tint = colors.inkTertiary,
             modifier = Modifier.size(20.dp),
         )
     }
@@ -357,7 +357,7 @@ private fun FigmaSettingsItem(
 @androidx.compose.ui.tooling.preview.Preview(name = "Settings Screen — Light", showBackground = true)
 @Composable
 private fun SettingsScreenLightPreview() {
-    RonaTheme {
+    RunaTheme {
         SettingsScreen(
             onSecurity = {},
             onNotifications = {},

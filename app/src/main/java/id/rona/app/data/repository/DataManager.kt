@@ -1,7 +1,7 @@
 package id.rona.app.data.repository
 
 import id.rona.app.data.crypto.CryptoManager
-import id.rona.app.data.db.RonaDatabase
+import id.rona.app.data.db.RunaDatabase
 import id.rona.app.data.db.dao.DailyLogDao
 import id.rona.app.data.db.dao.ExportMetadataDao
 import id.rona.app.data.db.dao.NlpSuggestionDao
@@ -25,7 +25,7 @@ enum class DataCategory {
 
 @Singleton
 class DataManager @Inject constructor(
-    private val db: RonaDatabase,
+    private val db: RunaDatabase,
     private val profileDao: ProfileDao,
     private val periodRecordDao: PeriodRecordDao,
     private val dailyLogDao: DailyLogDao,

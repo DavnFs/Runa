@@ -6,7 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,22 +15,23 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class)
-class RonaTopBarTest {
+class RunaTopBarTest {
 
     @get:Rule
     val composeRule = createComposeRule()
 
     @Test
-    fun displaysRunaWordmark() {
+    fun displaysRunaLogoMark() {
         composeRule.setContent {
-            RonaTheme {
-                RonaTopBar(
+            RunaTheme {
+                RunaTopBar(
                     subtitle = "Senin, 17 Agustus",
                     onOpenSettings = {},
                 )
             }
         }
-        composeRule.onNodeWithText("RUNA").assertIsDisplayed()
+        // The bar carries the brand mark, not a text wordmark.
+        composeRule.onNodeWithContentDescription("Runa").assertIsDisplayed()
         composeRule.onNodeWithText("Senin, 17 Agustus").assertIsDisplayed()
     }
 
@@ -38,8 +39,8 @@ class RonaTopBarTest {
     fun settingsButtonTriggersCallback() {
         var settingsClicked = false
         composeRule.setContent {
-            RonaTheme {
-                RonaTopBar(
+            RunaTheme {
+                RunaTopBar(
                     onOpenSettings = { settingsClicked = true },
                 )
             }

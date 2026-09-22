@@ -17,7 +17,7 @@ import id.rona.app.domain.model.ThemeMode
 val LocalRonaColors = staticCompositionLocalOf { LightRonaColors }
 
 @Composable
-fun RonaTheme(
+fun RunaTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
@@ -30,22 +30,22 @@ fun RonaTheme(
     }
 
     val colorScheme = when {
-        // Rona palette is DEFAULT. Dynamic color is optional opt-in only.
+        // Runa palette is DEFAULT. Dynamic color is optional opt-in only.
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> RonaDarkColorScheme
-        else -> RonaLightColorScheme
+        darkTheme -> RunaDarkColorScheme
+        else -> RunaLightColorScheme
     }
 
-    val ronaColors = if (darkTheme) DarkRonaColors else LightRonaColors
+    val runaColors = if (darkTheme) DarkRonaColors else LightRonaColors
 
-    CompositionLocalProvider(LocalRonaColors provides ronaColors) {
+    CompositionLocalProvider(LocalRonaColors provides runaColors) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = RonaTypography,
-            shapes = RonaShapes,
+            typography = RunaTypography,
+            shapes = RunaShapes,
             content = content,
         )
     }

@@ -6,7 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import id.rona.app.data.db.RonaDatabase
+import id.rona.app.data.db.RunaDatabase
 import id.rona.app.data.db.dao.CyclePredictionDao
 import id.rona.app.data.db.dao.DailyLogDao
 import id.rona.app.data.db.dao.ExportMetadataDao
@@ -25,35 +25,35 @@ object DatabaseModule {
     @Singleton
     fun provideRonaDatabase(
         @ApplicationContext context: Context,
-        factory: RonaDatabase.Factory,
-    ): RonaDatabase = factory.create(context)
+        factory: RunaDatabase.Factory,
+    ): RunaDatabase = factory.create(context)
 
     @Provides
-    fun provideProfileDao(db: RonaDatabase): ProfileDao = db.profileDao()
+    fun provideProfileDao(db: RunaDatabase): ProfileDao = db.profileDao()
 
     @Provides
-    fun providePeriodRecordDao(db: RonaDatabase): PeriodRecordDao = db.periodRecordDao()
+    fun providePeriodRecordDao(db: RunaDatabase): PeriodRecordDao = db.periodRecordDao()
 
     @Provides
-    fun provideDailyLogDao(db: RonaDatabase): DailyLogDao = db.dailyLogDao()
+    fun provideDailyLogDao(db: RunaDatabase): DailyLogDao = db.dailyLogDao()
 
     @Provides
-    fun provideSymptomLogDao(db: RonaDatabase): SymptomLogDao = db.symptomLogDao()
+    fun provideSymptomLogDao(db: RunaDatabase): SymptomLogDao = db.symptomLogDao()
 
     @Provides
-    fun provideCyclePredictionDao(db: RonaDatabase): CyclePredictionDao = db.cyclePredictionDao()
+    fun provideCyclePredictionDao(db: RunaDatabase): CyclePredictionDao = db.cyclePredictionDao()
 
     @Provides
-    fun provideSettingsDao(db: RonaDatabase): SettingsDao = db.settingsDao()
+    fun provideSettingsDao(db: RunaDatabase): SettingsDao = db.settingsDao()
 
     @Provides
-    fun provideExportMetadataDao(db: RonaDatabase): ExportMetadataDao = db.exportMetadataDao()
+    fun provideExportMetadataDao(db: RunaDatabase): ExportMetadataDao = db.exportMetadataDao()
 
     @Provides
-    fun provideNlpSuggestionDao(db: RonaDatabase): NlpSuggestionDao = db.nlpSuggestionDao()
+    fun provideNlpSuggestionDao(db: RunaDatabase): NlpSuggestionDao = db.nlpSuggestionDao()
 
     @Provides
     @Singleton
-    fun provideTransactionRunner(db: RonaDatabase): id.rona.app.data.db.TransactionRunner =
+    fun provideTransactionRunner(db: RunaDatabase): id.rona.app.data.db.TransactionRunner =
         id.rona.app.data.db.RoomTransactionRunner(db)
 }

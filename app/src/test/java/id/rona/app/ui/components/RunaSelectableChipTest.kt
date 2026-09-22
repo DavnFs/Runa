@@ -7,7 +7,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,7 +16,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class)
-class RonaSelectableChipTest {
+class RunaSelectableChipTest {
 
     @get:Rule
     val composeRule = createComposeRule()
@@ -25,8 +25,8 @@ class RonaSelectableChipTest {
     fun chipDisplaysLabelAndHandlesSelection() {
         var clicked = false
         composeRule.setContent {
-            RonaTheme {
-                RonaSelectableChip(
+            RunaTheme {
+                RunaSelectableChip(
                     label = "Kram perut",
                     selected = true,
                     onClick = { clicked = true },

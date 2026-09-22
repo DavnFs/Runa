@@ -20,10 +20,10 @@ import androidx.compose.ui.graphics.Color
 import kotlin.math.roundToInt
 
 /**
- * Apple-grade fluid motion system for Rona.
+ * Apple-grade fluid motion system for Runa.
  * Models iOS UIKit/SwiftUI spring physics and cubic-bezier response curves.
  */
-object RonaMotion {
+object RunaMotion {
 
     /** Standard iOS Deceleration Curve (Ease-Out) */
     val AppleEaseOut = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)

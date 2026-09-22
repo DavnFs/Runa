@@ -50,11 +50,11 @@ import id.rona.app.domain.model.FlowLevel
 import id.rona.app.domain.model.Mood
 import id.rona.app.domain.model.Severity
 import id.rona.app.domain.model.SymptomType
-import id.rona.app.ui.components.RonaJournalTextField
-import id.rona.app.ui.components.RonaPrimaryButton
-import id.rona.app.ui.components.RonaSecondaryButton
-import id.rona.app.ui.components.RonaSection
-import id.rona.app.ui.components.RonaSelectableChip
+import id.rona.app.ui.components.RunaJournalTextField
+import id.rona.app.ui.components.RunaPrimaryButton
+import id.rona.app.ui.components.RunaSecondaryButton
+import id.rona.app.ui.components.RunaSection
+import id.rona.app.ui.components.RunaSelectableChip
 import id.rona.app.ui.nlp.NoteAnalysisResultSheet
 import id.rona.app.ui.theme.LocalRonaColors
 import java.time.LocalDate
@@ -142,13 +142,13 @@ fun FullLogEditorSheet(
         }
 
         // ——— Perasaan tubuh (Flow) ———
-        RonaSection(title = "Aliran Menstruasi") {
+        RunaSection(title = "Aliran Menstruasi") {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 FlowLevel.entries.forEach { flow ->
-                    RonaSelectableChip(
+                    RunaSelectableChip(
                         label = when (flow) {
                             FlowLevel.SPOTTING -> "Spotting"
                             FlowLevel.LIGHT -> "Ringan"
@@ -163,12 +163,12 @@ fun FullLogEditorSheet(
         }
 
         // ——— Intensitas (gejala + tingkat) ———
-        RonaSection(title = "Intensitas Gejala", supporting = "Pilih gejala yang kamu rasakan beserta tingkat keparahannya") {
+        RunaSection(title = "Intensitas Gejala", supporting = "Pilih gejala yang kamu rasakan beserta tingkat keparahannya") {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 SymptomType.entries.forEach { symptom ->
                     val severity = uiState.selectedSymptoms[symptom]
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        RonaSelectableChip(
+                        RunaSelectableChip(
                             label = symptomLabel(symptom),
                             selected = severity != null,
                             onClick = { viewModel.toggleSymptom(symptom) },
@@ -201,13 +201,13 @@ fun FullLogEditorSheet(
         }
 
         // ——— Energi ———
-        RonaSection(title = "Tingkat Energi", supporting = "Rendah — Sedang — Tinggi") {
+        RunaSection(title = "Tingkat Energi", supporting = "Rendah — Sedang — Tinggi") {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Energy.entries.forEach { energy ->
-                    RonaSelectableChip(
+                    RunaSelectableChip(
                         label = energyLabel(energy),
                         selected = uiState.energy == energy,
                         onClick = { viewModel.selectEnergy(if (uiState.energy == energy) null else energy) },
@@ -217,13 +217,13 @@ fun FullLogEditorSheet(
         }
 
         // ——— Mood ———
-        RonaSection(title = "Suasana Hati (Mood)") {
+        RunaSection(title = "Suasana Hati (Mood)") {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Mood.entries.forEach { mood ->
-                    RonaSelectableChip(
+                    RunaSelectableChip(
                         label = moodLabel(mood),
                         selected = uiState.mood == mood,
                         onClick = { viewModel.selectMood(if (uiState.mood == mood) null else mood) },
@@ -233,8 +233,8 @@ fun FullLogEditorSheet(
         }
 
         // ——— Catatan pribadi ———
-        RonaSection(title = "Catatan pribadi") {
-            RonaJournalTextField(
+        RunaSection(title = "Catatan pribadi") {
+            RunaJournalTextField(
                 value = uiState.note,
                 onValueChange = viewModel::setNote,
                 minLines = 4,
@@ -281,12 +281,12 @@ fun FullLogEditorSheet(
                 .padding(horizontal = 24.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            RonaSecondaryButton(
+            RunaSecondaryButton(
                 text = "Hapus",
                 onClick = viewModel::delete,
                 modifier = Modifier.weight(1f),
             )
-            RonaPrimaryButton(
+            RunaPrimaryButton(
                 text = if (uiState.isSaving) "Menyimpan…" else "Simpan catatan",
                 onClick = viewModel::save,
                 enabled = !uiState.isSaving,

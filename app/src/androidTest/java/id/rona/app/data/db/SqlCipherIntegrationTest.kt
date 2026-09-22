@@ -20,7 +20,7 @@ class SqlCipherIntegrationTest {
         // building SupportOpenHelperFactory — this test exercises that exact
         // path and proves the encrypted DB actually opens (native calls work).
         val crypto = CryptoManager(context)
-        val factory = RonaDatabase.Factory(crypto)
+        val factory = RunaDatabase.Factory(crypto)
         val db = factory.create(context)
 
         val now = System.currentTimeMillis()
@@ -41,7 +41,7 @@ class SqlCipherIntegrationTest {
         // After Factory.create() the process-wide loader must be marked loaded.
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val crypto = CryptoManager(context)
-        val factory = RonaDatabase.Factory(crypto)
+        val factory = RunaDatabase.Factory(crypto)
         val db = factory.create(context)
         db.close()
 

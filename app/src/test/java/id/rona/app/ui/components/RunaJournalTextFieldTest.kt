@@ -3,7 +3,7 @@ package id.rona.app.ui.components
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import id.rona.app.ui.theme.RonaTheme
+import id.rona.app.ui.theme.RunaTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,7 +12,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class)
-class RonaJournalTextFieldTest {
+class RunaJournalTextFieldTest {
 
     @get:Rule
     val composeRule = createComposeRule()
@@ -20,8 +20,8 @@ class RonaJournalTextFieldTest {
     @Test
     fun displaysJournalText() {
         composeRule.setContent {
-            RonaTheme {
-                RonaJournalTextField(
+            RunaTheme {
+                RunaJournalTextField(
                     value = "Catatan hari ini tenang dan nyaman.",
                     onValueChange = {},
                 )
